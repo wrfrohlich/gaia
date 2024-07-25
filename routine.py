@@ -25,6 +25,7 @@ class Routine():
         proc = Processing()
         merged_data = proc.run(gait_lab_data, gwalk_data)
 
+        print(merged_data)
         Corr = Correlation()
         Corr.corr_matrix(merged_data)
 
