@@ -25,9 +25,13 @@ class Routine():
         proc = Processing()
         merged_data = proc.run(gait_lab_data, gwalk_data)
 
+        #gwalk_data = proc.remove_nan(gwalk_data)
+        #gait_lab_data = proc.remove_nan(gait_lab_data)
+
         print(merged_data)
-        Corr = Correlation()
-        Corr.corr_matrix(merged_data)
+        corr = Correlation()
+        corr.cross_correlation(merged_data)
+        #corr.corr_matrix(merged_data)
 
 
 if __name__ == '__main__':
