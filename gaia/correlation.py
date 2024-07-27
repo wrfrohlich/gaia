@@ -9,7 +9,7 @@ from scipy.stats import pearsonr, spearmanr, kendalltau
 
 class Correlation():
     def __init__(self):
-        self.path_matrix = 'figures/normalize_minmax'
+        self.path_matrix = 'figures/mean'
         self.path_cross = 'figures/cross'
 
         if not os.path.exists(self.path_matrix):
@@ -22,6 +22,8 @@ class Correlation():
         corr_matrix_pearson = data.corr(method='pearson')
         corr_matrix_spearman = data.corr(method='spearman')
         corr_matrix_kendall = data.corr(method='kendall')
+
+        print(corr_matrix_pearson)
 
         plt.figure(figsize=(14, 10))
         sns.heatmap(corr_matrix_pearson, annot=True, fmt=".2f", cmap='coolwarm')
@@ -67,9 +69,10 @@ class Correlation():
                 min_len = min(len(lags), len(correlation))
                 lags = lags[:min_len]
                 correlation = correlation[:min_len]
-                plt.figure(figsize=(14, 5))
-                plt.plot(lags, correlation)
-                plt.title('Correlação Cruzada')
-                plt.xlabel('Deslocamento')
-                plt.ylabel('Correlação')
-                plt.savefig(f'{self.path_cross}/cross_corr_{col1}_{col2}.png')
+                print(correlation)
+                # plt.figure(figsize=(14, 5))
+                # plt.plot(lags, correlation)
+                # plt.title('Correlação Cruzada')
+                # plt.xlabel('Deslocamento')
+                # plt.ylabel('Correlação')
+                # plt.savefig(f'{self.path_cross}/cross_corr_{col1}_{col2}.png')

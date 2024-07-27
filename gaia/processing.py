@@ -3,6 +3,8 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
 class Processing():
     def run(self, df1, df2):
+        print(df1)
+        print(df2)
         df1 = self.remove_nan(df1)
         df1 = self.convert_nan(df1)
         #df1 = self.interpolation(df1)
@@ -15,6 +17,8 @@ class Processing():
         #df2 = self.normalize_data(df2, scaler_type='standard')
         #df2 = self.normalize_data(df2, scaler_type='minmax')
 
+        print(df1)
+        print(df2)
         return self.merge(df1, df2)
 
     def remove_null():
@@ -23,8 +27,13 @@ class Processing():
     def remove_nan(self, df, param='time'):
         return df.dropna(subset=[param])
     
-    def convert_nan(self, df):
-        return df.fillna(0)
+    def convert_nan(self, df, type="mean"):
+        print("Bluba")
+        if type == "mean":
+            df.fillna(df.mean(), inplace=True)
+        elif type == "zero":
+            df.fillna(0)
+        return df
 
     def normalize_data(self, df, scaler_type='standard'):
         scaler = StandardScaler() if scaler_type == 'standard' else MinMaxScaler()

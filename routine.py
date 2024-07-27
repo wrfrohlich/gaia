@@ -1,6 +1,6 @@
-from load import GaitLab, GWalk
-from correlation import Correlation
-from processing import Processing
+from gaia.load import GaitLab, GWalk
+from gaia.correlation import Correlation
+from gaia.processing import Processing
 
 class Routine():
     def __init__(self):
@@ -10,8 +10,8 @@ class Routine():
         self.participants = ["040102", "040103", "040104", "040105"]
 
     def run(self):
-        #gait_lab_file = "../bittencourt_data/point_track_040102.emt"
-        gait_lab_file = "../bittencourt_data/force_track_040102.emt"
+        gait_lab_file = "../bittencourt_data/point_track_040102.emt"
+        #gait_lab_file = "../bittencourt_data/force_track_040102.emt"
         gwalk_file = "../bittencourt_data/gwalk_040102.txt"
 
         gl = GaitLab()
@@ -28,10 +28,9 @@ class Routine():
         #gwalk_data = proc.remove_nan(gwalk_data)
         #gait_lab_data = proc.remove_nan(gait_lab_data)
 
-        print(merged_data)
         corr = Correlation()
-        corr.cross_correlation(merged_data)
-        #corr.corr_matrix(merged_data)
+        #corr.cross_correlation(merged_data)
+        corr.corr_matrix(merged_data)
 
 
 if __name__ == '__main__':
