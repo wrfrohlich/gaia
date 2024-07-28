@@ -7,8 +7,11 @@ import matplotlib.pyplot as plt
 from scipy.signal import correlate
 from scipy.stats import pearsonr, spearmanr, kendalltau
 
+from .config import Config
+
 class Correlation():
     def __init__(self):
+        self.config = Config()
         self.path_matrix = 'figures/mean'
         self.path_cross = 'figures/cross'
 
@@ -42,15 +45,8 @@ class Correlation():
 
     def corr(self, x, y):
         pearson_corr, _ = pearsonr(x, y)
-        print(_)
         spearman_corr, _ = spearmanr(x, y)
-        print(_)
         kendall_corr, _ = kendalltau(x, y)
-        print(_)
-
-        print(pearson_corr)
-        print(spearman_corr)
-        print(kendall_corr)
 
     def cross_correlation_uniq(self, series1, series2):
         correlation = correlate(series1, series2, mode='full')
@@ -69,7 +65,6 @@ class Correlation():
                 min_len = min(len(lags), len(correlation))
                 lags = lags[:min_len]
                 correlation = correlation[:min_len]
-                print(correlation)
                 # plt.figure(figsize=(14, 5))
                 # plt.plot(lags, correlation)
                 # plt.title('Correlação Cruzada')

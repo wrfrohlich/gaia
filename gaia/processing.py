@@ -1,34 +1,32 @@
+from .filtering import Filtering
 from pandas import DataFrame, merge_asof
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
 class Processing():
+    def __init__(self):
+        self.filtering = Filtering()
+
     def run(self, df1, df2):
-        print(df1)
-        print(df2)
         df1 = self.remove_nan(df1)
         df1 = self.convert_nan(df1)
+        df1 = Filtering.butter_lowpass(df1)
         #df1 = self.interpolation(df1)
         #df1 = self.normalize_data(df1, scaler_type='standard')
         #df1 = self.normalize_data(df1, scaler_type='minmax')
 
         df2 = self.remove_nan(df2)
         df2 = self.convert_nan(df2)
+        df2 = Filtering.butter_lowpass(df2)
         #df2 = self.interpolation(df2)
         #df2 = self.normalize_data(df2, scaler_type='standard')
         #df2 = self.normalize_data(df2, scaler_type='minmax')
 
-        print(df1)
-        print(df2)
         return self.merge(df1, df2)
-
-    def remove_null():
-        pass
 
     def remove_nan(self, df, param='time'):
         return df.dropna(subset=[param])
     
     def convert_nan(self, df, type="mean"):
-        print("Bluba")
         if type == "mean":
             df.fillna(df.mean(), inplace=True)
         elif type == "zero":
