@@ -1,92 +1,85 @@
-import numpy as np
 import pandas as pd
+import numpy as np
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
+from keras.models import Model, Sequential
+from keras.layers import Dense, Conv1D, Flatten, Reshape, Input, Dropout
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy.stats import f_oneway
 
-from scipy.fftpack import fft
-from scipy.signal import find_peaks
 
-def mean(data):
-    return np.mean(data)
+class FeatureExtraction():
+    def feature_extraction(self, merged_data, wearable_data):
 
-def std_dev(data):
-    return np.std(data)
+        # Normalizar os dados
+        scaler = StandardScaler()
+        wearable_scaled = scaler.fit_transform(merged_data[['acc_x', 'acc_y', 'acc_z', 'gyro_x', 'gyro_y', 'gyro_z']])
+        camera_scaled = scaler.fit_transform(merged_data.drop(columns=['time']))
 
-def max_value(data):
-    return np.max(data)
+        # Preparar dados para o autoencoder
+        X_wearable = wearable_scaled.reshape((wearable_scaled.shape[0], wearable_scaled.shape[1], 1))
 
-def min_value(data):
-    return np.min(data)
+        # Construir o autoencoder
+        input_layer = Input(shape=(X_wearable.shape[1], 1))
+        x = Conv1D(64, kernel_size=3, activation='relu', padding='same')(input_layer)
+        x = Dropout(0.2)(x)
+        x = Flatten()(x)
+        encoded = Dense(50, activation='relu')(x)
+        decoded = Dense(X_wearable.shape[1], activation='relu')(encoded)
+        decoded = Reshape((X_wearable.shape[1], 1))(decoded)
 
-def energy(data):
-    return np.sum(np.square(data))
+        autoencoder = Model(input_layer, decoded)
+        encoder = Model(input_layer, encoded)
 
-def rms(data):
-    return np.sqrt(np.mean(np.square(data)))
+        autoencoder.compile(optimizer='adam', loss='mse')
 
-def fft_features(data):
-    fft_values = fft(data)
-    fft_magnitude = np.abs(fft_values)
-    return fft_magnitude[:len(fft_magnitude) // 2]
+        # Treinar o autoencoder com os dados dos wearables
+        autoencoder.fit(X_wearable, X_wearable, epochs=20, verbose=1)
 
-data = pd.DataFrame({
-    'time': time,
-    'acc_x': acc_x,
-    'acc_y': acc_y,
-    'acc_z': acc_z,
-    'gyro_x': gyro_x,
-    'gyro_y': gyro_y,
-    'gyro_z': gyro_z,
-    'pos_x': position_x,
-    'pos_y': position_y,
-    'pos_z': position_z
-})
+        # Extrair características dos dados dos wearables usando o encoder
+        wearable_features = encoder.predict(X_wearable)
 
-features = {
-    'mean_acc_x': mean(data['acc_x']),
-    'std_acc_x': std_dev(data['acc_x']),
-    'max_acc_x': max_value(data['acc_x']),
-    'min_acc_x': min_value(data['acc_x']),
-    'energy_acc_x': energy(data['acc_x']),
-    'rms_acc_x': rms(data['acc_x']),
-    'fft_acc_x': fft_features(data['acc_x']),
+        # Aplicar PCA para reduzir a dimensionalidade dos dados cinemáticos
+        pca = PCA(n_components=10)
+        camera_features = pca.fit_transform(camera_scaled)
 
-    'mean_gyro_x': mean(data['gyro_x']),
-    'std_gyro_x': std_dev(data['gyro_x']),
-    'max_gyro_x': max_value(data['gyro_x']),
-    'min_gyro_x': min_value(data['gyro_x']),
-    'energy_gyro_x': energy(data['gyro_x']),
-    'rms_gyro_x': rms(data['gyro_x']),
-    'fft_gyro_x': fft_features(data['gyro_x']),
-}
+        # Combinar características extraídas
+        combined_features = np.concatenate((wearable_features, camera_features), axis=1)
 
-features_df = pd.DataFrame([features])
-print(features_df)
+        # Aplicar K-Means para encontrar padrões comuns
+        kmeans = KMeans(n_clusters=3)
+        clusters = kmeans.fit_predict(combined_features)
 
-def velocity(position, time):
-    return np.gradient(position, time)
+        # Adicionar clusters aos dados originais
+        merged_data['cluster'] = clusters
 
-def acceleration(velocity, time):
-    return np.gradient(velocity, time)
+        # Visualizar clusters
+        sns.scatterplot(x='acc_x', y='r should.X', hue='cluster', data=merged_data, palette='viridis')
+        plt.title('Clusters entre Dados de Wearables e Cinemática')
+        plt.show()
 
-def distance_traveled(position):
-    return np.sum(np.sqrt(np.diff(position)**2))
+        # Calcular o coeficiente de silhueta
+        silhouette_avg = silhouette_score(combined_features, clusters)
+        print(f'Coeficiente de Silhueta: {silhouette_avg}')
 
-def trajectory_smoothness(position):
-    velocity = np.gradient(position)
-    acceleration = np.gradient(velocity)
-    jerk = np.gradient(acceleration)
-    return np.sum(np.abs(jerk))
+        # Análise de variância (ANOVA)
+        anova_results = {}
+        for col in wearable_data.columns:
+            if col != 'timestamp':
+                groups = [merged_data[merged_data['cluster'] == i][col] for i in range(3)]
+                anova_results[col] = f_oneway(*groups)
+                print(f'{col} - ANOVA: F-value={anova_results[col].statistic}, p-value={anova_results[col].pvalue}')
 
-pos_x_velocity = velocity(data['pos_x'], data['time'])
-pos_x_acceleration = acceleration(pos_x_velocity, data['time'])
+        # Visualização com PCA (reduzindo para 2D para visualização)
+        pca_2d = PCA(n_components=2)
+        combined_2d = pca_2d.fit_transform(combined_features)
 
-camera_features = {
-    'mean_pos_x': mean(data['pos_x']),
-    'std_pos_x': std_dev(data['pos_x']),
-    'max_pos_x': max_value(data['pos_x']),
-    'min_pos_x': min_value(data['pos_x']),
-    'distance_pos_x': distance_traveled(data['pos_x']),
-    'smoothness_pos_x': trajectory_smoothness(data['pos_x']),
-}
-
-camera_features_df = pd.DataFrame([camera_features])
-print(camera_features_df)
+        plt.figure(figsize=(10, 6))
+        sns.scatterplot(x=combined_2d[:, 0], y=combined_2d[:, 1], hue=clusters, palette='viridis')
+        plt.title('Clusters em 2D usando PCA')
+        plt.xlabel('Componente Principal 1')
+        plt.ylabel('Componente Principal 2')
+        plt.savefig(f'bluba_2.png')

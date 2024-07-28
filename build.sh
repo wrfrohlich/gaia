@@ -1,1 +1,1 @@
-pip3 install -r requirements
+pip3.10 install -r ./requirements.txt

@@ -22,11 +22,14 @@ class Correlation():
             os.makedirs(self.path_cross)
 
     def corr_matrix(self, data):
+        data = data[[
+            "acc_x", "acc_y", "acc_z", "gyro_x", "gyro_y", "gyro_z", "roll", "pitch", "yaw",
+            "time", "r should.X", "r should.Y", "r should.Z", "l should.X",
+            "l should.Y", "l should.Z", "sacrum s.X", "sacrum s.Y", "sacrum s.Z"
+        ]]
         corr_matrix_pearson = data.corr(method='pearson')
         corr_matrix_spearman = data.corr(method='spearman')
         corr_matrix_kendall = data.corr(method='kendall')
-
-        print(corr_matrix_pearson)
 
         plt.figure(figsize=(14, 10))
         sns.heatmap(corr_matrix_pearson, annot=True, fmt=".2f", cmap='coolwarm')
@@ -35,12 +38,12 @@ class Correlation():
 
         plt.figure(figsize=(14, 10))
         sns.heatmap(corr_matrix_spearman, annot=True, fmt=".2f", cmap='coolwarm')
-        plt.title('Correlation Matrix - spearman')
+        plt.title('Correlation Matrix - Spearman')
         plt.savefig(f'{self.path_matrix}/corr_matrix_corr_matrix_spearman.png')
 
         plt.figure(figsize=(14, 10))
         sns.heatmap(corr_matrix_kendall, annot=True, fmt=".2f", cmap='coolwarm')
-        plt.title('Correlation Matrix - kendall')
+        plt.title('Correlation Matrix - Kendall')
         plt.savefig(f'{self.path_matrix}/corr_matrix_corr_matrix_kendall.png')
 
     def corr(self, x, y):
@@ -65,9 +68,9 @@ class Correlation():
                 min_len = min(len(lags), len(correlation))
                 lags = lags[:min_len]
                 correlation = correlation[:min_len]
-                # plt.figure(figsize=(14, 5))
-                # plt.plot(lags, correlation)
-                # plt.title('Correlação Cruzada')
-                # plt.xlabel('Deslocamento')
-                # plt.ylabel('Correlação')
-                # plt.savefig(f'{self.path_cross}/cross_corr_{col1}_{col2}.png')
+                plt.figure(figsize=(14, 5))
+                plt.plot(lags, correlation)
+                plt.title('Cross Correlation')
+                plt.xlabel('Time')
+                plt.ylabel('Correlation')
+                plt.savefig(f'{self.path_cross}/cross_corr_{col1}_{col2}.png')
