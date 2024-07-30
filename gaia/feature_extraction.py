@@ -4,25 +4,50 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
-from keras.models import Model, Sequential
+from keras.models import Model
 from keras.layers import Dense, Conv1D, Flatten, Reshape, Input, Dropout
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.stats import f_oneway
 
 
-class FeatureExtraction():
-    def feature_extraction(self, merged_data, wearable_data):
+class FeatureExtraction:
+    """
+    A class for extracting and analyzing features from wearable and camera data.
 
-        # Normalizar os dados
+    Methods
+    -------
+    feature_extraction(merged_data, wearable_data)
+        Extracts features using an autoencoder and PCA, applies K-Means clustering, and performs analysis and visualization.
+    """
+
+    def feature_extraction(self, merged_data, wearable_data):
+        """
+        Extracts features from wearable and camera data, applies K-Means clustering, and performs analysis and visualization.
+
+        Parameters
+        ----------
+        merged_data : pd.DataFrame
+            A DataFrame containing the merged wearable and camera data, with columns for wearable sensor readings 
+            and camera points.
+        wearable_data : pd.DataFrame
+            A DataFrame containing the wearable data with timestamps and other relevant columns for ANOVA analysis.
+
+        Returns
+        -------
+        None
+            This method does not return any values. It performs feature extraction, clustering, and generates plots.
+        """
+        
+        # Normalize the data
         scaler = StandardScaler()
         wearable_scaled = scaler.fit_transform(merged_data[['acc_x', 'acc_y', 'acc_z', 'gyro_x', 'gyro_y', 'gyro_z']])
         camera_scaled = scaler.fit_transform(merged_data.drop(columns=['time']))
 
-        # Preparar dados para o autoencoder
+        # Prepare data for the autoencoder
         X_wearable = wearable_scaled.reshape((wearable_scaled.shape[0], wearable_scaled.shape[1], 1))
 
-        # Construir o autoencoder
+        # Build the autoencoder
         input_layer = Input(shape=(X_wearable.shape[1], 1))
         x = Conv1D(64, kernel_size=3, activation='relu', padding='same')(input_layer)
         x = Dropout(0.2)(x)
@@ -36,36 +61,37 @@ class FeatureExtraction():
 
         autoencoder.compile(optimizer='adam', loss='mse')
 
-        # Treinar o autoencoder com os dados dos wearables
+        # Train the autoencoder with wearable data
         autoencoder.fit(X_wearable, X_wearable, epochs=20, verbose=1)
 
-        # Extrair características dos dados dos wearables usando o encoder
+        # Extract features from wearable data using the encoder
         wearable_features = encoder.predict(X_wearable)
 
-        # Aplicar PCA para reduzir a dimensionalidade dos dados cinemáticos
+        # Apply PCA to reduce the dimensionality of camera data
         pca = PCA(n_components=10)
         camera_features = pca.fit_transform(camera_scaled)
 
-        # Combinar características extraídas
+        # Combine extracted features
         combined_features = np.concatenate((wearable_features, camera_features), axis=1)
 
-        # Aplicar K-Means para encontrar padrões comuns
+        # Apply K-Means to find common patterns
         kmeans = KMeans(n_clusters=3)
         clusters = kmeans.fit_predict(combined_features)
 
-        # Adicionar clusters aos dados originais
+        # Add clusters to the original data
         merged_data['cluster'] = clusters
 
-        # Visualizar clusters
+        # Visualize clusters
         sns.scatterplot(x='acc_x', y='r should.X', hue='cluster', data=merged_data, palette='viridis')
-        plt.title('Clusters entre Dados de Wearables e Cinemática')
-        plt.show()
+        plt.title('Clusters between Wearable and Kinematic Data')
+        plt.savefig('Clusters.png')
+        plt.clf()
 
-        # Calcular o coeficiente de silhueta
+        # Calculate the silhouette coefficient
         silhouette_avg = silhouette_score(combined_features, clusters)
-        print(f'Coeficiente de Silhueta: {silhouette_avg}')
+        print(f'Silhouette Coefficient: {silhouette_avg}')
 
-        # Análise de variância (ANOVA)
+        # Perform ANOVA analysis
         anova_results = {}
         for col in wearable_data.columns:
             if col != 'timestamp':
@@ -73,13 +99,14 @@ class FeatureExtraction():
                 anova_results[col] = f_oneway(*groups)
                 print(f'{col} - ANOVA: F-value={anova_results[col].statistic}, p-value={anova_results[col].pvalue}')
 
-        # Visualização com PCA (reduzindo para 2D para visualização)
+        # Visualization with PCA (reducing to 2D for visualization)
         pca_2d = PCA(n_components=2)
         combined_2d = pca_2d.fit_transform(combined_features)
 
         plt.figure(figsize=(10, 6))
         sns.scatterplot(x=combined_2d[:, 0], y=combined_2d[:, 1], hue=clusters, palette='viridis')
-        plt.title('Clusters em 2D usando PCA')
-        plt.xlabel('Componente Principal 1')
-        plt.ylabel('Componente Principal 2')
-        plt.savefig(f'bluba_2.png')
+        plt.title('Clusters in 2D using PCA')
+        plt.xlabel('Principal Component 1')
+        plt.ylabel('Principal Component 2')
+        plt.savefig('Clusters_PCA.png')
+        plt.clf()
