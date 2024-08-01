@@ -227,37 +227,3 @@ class Correlation:
         correlation = correlate(series1, series2, mode='full')
         lags = np.arange(-len(series1) + 1, len(series1))
         return lags, correlation
-
-    # def cross_correlation(self, merged_data):
-    #     """
-    #     Computes and saves cross-correlation plots for all pairs of columns in the merged data.
-
-    #     Parameters
-    #     ----------
-    #     merged_data : pd.DataFrame
-    #         A DataFrame containing the merged data with columns to compute cross-correlation.
-
-    #     Returns
-    #     -------
-    #     None
-    #         This method does not return any values. It generates and saves cross-correlation plots.
-    #     """
-    #     columns = merged_data.columns[merged_data.columns != 'time']
-    #     for i in range(len(columns)):
-    #         for j in range(i + 1, len(columns)):
-    #             col1 = columns[i]
-    #             col2 = columns[j]
-
-    #             lags, correlation = self.cross_correlation_uniq(merged_data[col1], merged_data[col2])
-
-    #             min_len = min(len(lags), len(correlation))
-    #             lags = lags[:min_len]
-    #             correlation = correlation[:min_len]
-
-    #             plt.figure(figsize=(14, 5))
-    #             plt.plot(lags, correlation)
-    #             plt.title(f'Cross Correlation between {col1} and {col2}')
-    #             plt_xlabel('Lags')
-    #             plt_ylabel('Correlation')
-    #             plt.savefig(f'{self.path_cross}/cross_corr_{col1}_{col2}.png')
-    #             plt.clf()
