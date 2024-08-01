@@ -117,47 +117,31 @@ class Correlation:
 
         self.gen_corr_matrix(df, name="vectors")
 
-        # Função para calcular correlação cruzada
-        def cross_correlation(a, b, lag=0):
-            return np.corrcoef(a[:-lag or None], b[lag:])[0, 1]
+        columns = df.columns[df.columns != 'time']
+        for i in range(len(columns)):
+            for j in range(i + 1, len(columns)):
+                col1 = columns[i]
+                col2 = columns[j]
+                self.print_cross_correlation(df, col1, col2)
 
-        # Calcular correlações cruzadas para diferentes defasagens
-        max_lag = 20  # Número máximo de desfasagens a considerar
-        cross_corrs = [cross_correlation(data['acc_x'], data['r should_x'], lag) for lag in range(max_lag)]
-
-        # Plotar correlação cruzada
-        plt.figure(figsize=(12, 6))
-        plt.plot(range(max_lag), cross_corrs, marker='o')
-        plt.xlabel('Lag')
-        plt.ylabel('Cross-Correlation')
-        plt.title('Correlação Cruzada entre acc_x e r should.X')
-        plt.savefig(f'{self.path_matrix}/bluba1.png')
-        plt.clf()
-
-        # Calcular correlações cruzadas para diferentes defasagens
-        max_lag = 20  # Número máximo de desfasagens a considerar
-        cross_corrs = [cross_correlation(data['acc_y'], data['r should_y'], lag) for lag in range(max_lag)]
+    def print_cross_correlation(self, df, value_a, value_b):
+        value_A = df[value_a]
+        print(value_A)
+        value_B = df[value_b]
+        print(value_B)
+        cross_corrs = [self.cross_correlation(value_A, value_B, lag) for lag in range(-10, 10, 1)]
 
         # Plotar correlação cruzada
         plt.figure(figsize=(12, 6))
-        plt.plot(range(max_lag), cross_corrs, marker='o')
+        plt.plot(range(-10, 10, 1), cross_corrs, marker='o')
         plt.xlabel('Lag')
         plt.ylabel('Cross-Correlation')
-        plt.title('Correlação Cruzada entre acc_y e r should.X')
-        plt.savefig(f'{self.path_matrix}/bluba2.png')
+        plt.title(f'Cross-Correlation between {value_a} and {value_b}')
+        plt.savefig(f'{self.path_cross}/{value_a}_and_{value_b}.png')
         plt.clf()
-        # Calcular correlações cruzadas para diferentes defasagens
-        max_lag = 20  # Número máximo de desfasagens a considerar
-        cross_corrs = [cross_correlation(data['gyro_x'], data['r should_x'], lag) for lag in range(max_lag)]
 
-        # Plotar correlação cruzada
-        plt.figure(figsize=(12, 6))
-        plt.plot(range(max_lag), cross_corrs, marker='o')
-        plt.xlabel('Lag')
-        plt.ylabel('Cross-Correlation')
-        plt.title('Correlação Cruzada entre gyro_x e r should.X')
-        plt.savefig(f'{self.path_matrix}/bluba3.png')
-        plt.clf()
+    def cross_correlation(self, a, b, lag=0):
+        return np.corrcoef(a[:-lag or None], b[lag:])[0, 1]
 
     def get_vector(self, data, label):
 
@@ -244,36 +228,36 @@ class Correlation:
         lags = np.arange(-len(series1) + 1, len(series1))
         return lags, correlation
 
-    def cross_correlation(self, merged_data):
-        """
-        Computes and saves cross-correlation plots for all pairs of columns in the merged data.
+    # def cross_correlation(self, merged_data):
+    #     """
+    #     Computes and saves cross-correlation plots for all pairs of columns in the merged data.
 
-        Parameters
-        ----------
-        merged_data : pd.DataFrame
-            A DataFrame containing the merged data with columns to compute cross-correlation.
+    #     Parameters
+    #     ----------
+    #     merged_data : pd.DataFrame
+    #         A DataFrame containing the merged data with columns to compute cross-correlation.
 
-        Returns
-        -------
-        None
-            This method does not return any values. It generates and saves cross-correlation plots.
-        """
-        columns = merged_data.columns[merged_data.columns != 'time']
-        for i in range(len(columns)):
-            for j in range(i + 1, len(columns)):
-                col1 = columns[i]
-                col2 = columns[j]
+    #     Returns
+    #     -------
+    #     None
+    #         This method does not return any values. It generates and saves cross-correlation plots.
+    #     """
+    #     columns = merged_data.columns[merged_data.columns != 'time']
+    #     for i in range(len(columns)):
+    #         for j in range(i + 1, len(columns)):
+    #             col1 = columns[i]
+    #             col2 = columns[j]
 
-                lags, correlation = self.cross_correlation_uniq(merged_data[col1], merged_data[col2])
+    #             lags, correlation = self.cross_correlation_uniq(merged_data[col1], merged_data[col2])
 
-                min_len = min(len(lags), len(correlation))
-                lags = lags[:min_len]
-                correlation = correlation[:min_len]
+    #             min_len = min(len(lags), len(correlation))
+    #             lags = lags[:min_len]
+    #             correlation = correlation[:min_len]
 
-                plt.figure(figsize=(14, 5))
-                plt.plot(lags, correlation)
-                plt.title(f'Cross Correlation between {col1} and {col2}')
-                plt_xlabel('Lags')
-                plt_ylabel('Correlation')
-                plt.savefig(f'{self.path_cross}/cross_corr_{col1}_{col2}.png')
-                plt.clf()
+    #             plt.figure(figsize=(14, 5))
+    #             plt.plot(lags, correlation)
+    #             plt.title(f'Cross Correlation between {col1} and {col2}')
+    #             plt_xlabel('Lags')
+    #             plt_ylabel('Correlation')
+    #             plt.savefig(f'{self.path_cross}/cross_corr_{col1}_{col2}.png')
+    #             plt.clf()
