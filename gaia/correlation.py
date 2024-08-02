@@ -96,6 +96,7 @@ class Correlation:
         self.gen_corr_matrix(data_lower_01, name="lower_body_01")
         self.gen_corr_matrix(data_lower_02, name="lower_body_02")
 
+        # Create a new DataFrame with vector magnitudes and other metrics
         df = pd.DataFrame()
         df["roll"] = data["roll"]
         df["pitch"] = data["pitch"]
@@ -125,13 +126,28 @@ class Correlation:
                 self.print_cross_correlation(df, col1, col2)
 
     def print_cross_correlation(self, df, value_a, value_b):
+        """
+        Computes and plots cross-correlation between two data series.
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            DataFrame containing the data series.
+        value_a : str
+            The first data series name.
+        value_b : str
+            The second data series name.
+
+        Returns
+        -------
+        None
+            This method does not return any values. It generates and saves cross-correlation plots.
+        """
         value_A = df[value_a]
-        print(value_A)
         value_B = df[value_b]
-        print(value_B)
         cross_corrs = [self.cross_correlation(value_A, value_B, lag) for lag in range(-10, 10, 1)]
 
-        # Plotar correlação cruzada
+        # Plot cross-correlation
         plt.figure(figsize=(12, 6))
         plt.plot(range(-10, 10, 1), cross_corrs, marker='o')
         plt.xlabel('Lag')
@@ -141,24 +157,79 @@ class Correlation:
         plt.clf()
 
     def cross_correlation(self, a, b, lag=0):
+        """
+        Computes the cross-correlation between two data series at a specified lag.
+
+        Parameters
+        ----------
+        a : array-like
+            The first data series.
+        b : array-like
+            The second data series.
+        lag : int, optional
+            The lag at which to compute the cross-correlation (default is 0).
+
+        Returns
+        -------
+        float
+            The cross-correlation value.
+        """
         return np.corrcoef(a[:-lag or None], b[lag:])[0, 1]
 
     def get_vector(self, data, label):
+        """
+        Computes the magnitude of vectors for each row in the DataFrame.
 
+        Parameters
+        ----------
+        data : pd.DataFrame
+            DataFrame containing the data.
+        label : str
+            The prefix of the columns representing the vector components.
+
+        Returns
+        -------
+        pd.Series
+            A Series containing the magnitudes of the vectors.
+        """
         value = data.apply(lambda row: self.create_vector(row, label), axis=1)
-
-        # Calcular a magnitude dos vetores
         value = value.apply(np.linalg.norm)
         return value
 
-
-    # Função para criar um vetor tridimensional
     def create_vector(self, row, prefix):
+        """
+        Creates a 3D vector from row data.
+
+        Parameters
+        ----------
+        row : pd.Series
+            A row of data from the DataFrame.
+        prefix : str
+            The prefix of the columns representing the vector components.
+
+        Returns
+        -------
+        np.array
+            A 3D vector.
+        """
         return np.array([row[f"{prefix}_x"], row[f"{prefix}_y"], row[f"{prefix}_z"]])
 
-
-
     def gen_corr_matrix(self, data, name=""):
+        """
+        Generates and saves correlation matrices (Pearson, Spearman, Kendall) for the given data.
+
+        Parameters
+        ----------
+        data : pd.DataFrame
+            A DataFrame containing the data for which to compute correlation matrices.
+        name : str, optional
+            A name to identify the correlation matrix (default is an empty string).
+
+        Returns
+        -------
+        None
+            This method does not return any values. It generates and saves correlation matrix plots.
+        """
         corr_matrix_pearson = data.corr(method='pearson')
         corr_matrix_spearman = data.corr(method='spearman')
         corr_matrix_kendall = data.corr(method='kendall')
@@ -166,21 +237,21 @@ class Correlation:
         # Plot and save Pearson correlation matrix
         plt.figure(figsize=(14, 10))
         sns.heatmap(corr_matrix_pearson, annot=True, fmt=".2f", cmap='coolwarm')
-        plt.title('Correlation Matrix - Pearson')
+        plt.title(f'Correlation Matrix - Pearson {name}')
         plt.savefig(f'{self.path_matrix}/corr_matrix_pearson_{name}.png')
         plt.clf()
 
         # Plot and save Spearman correlation matrix
         plt.figure(figsize=(14, 10))
         sns.heatmap(corr_matrix_spearman, annot=True, fmt=".2f", cmap='coolwarm')
-        plt.title('Correlation Matrix - Spearman')
+        plt.title(f'Correlation Matrix - Spearman {name}')
         plt.savefig(f'{self.path_matrix}/corr_matrix_spearman_{name}.png')
         plt.clf()
 
         # Plot and save Kendall correlation matrix
         plt.figure(figsize=(14, 10))
         sns.heatmap(corr_matrix_kendall, annot=True, fmt=".2f", cmap='coolwarm')
-        plt.title('Correlation Matrix - Kendall')
+        plt.title(f'Correlation Matrix - Kendall {name}')
         plt.savefig(f'{self.path_matrix}/corr_matrix_kendall_{name}.png')
         plt.clf()
 
