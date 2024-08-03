@@ -110,3 +110,33 @@ class FeatureExtraction:
         plt.ylabel('Principal Component 2')
         plt.savefig('Clusters_PCA.png')
         plt.clf()
+
+    @staticmethod
+    def distance_between_points(df):
+        df['dist_heel'] = np.sqrt((df['r_heel_x'] - df['l_heel_x'])**2 + 
+                                  (df['r_heel_y'] - df['l_heel_y'])**2 + 
+                                  (df['r_heel_z'] - df['l_heel_z'])**2)
+    
+    @staticmethod
+    def calculate_movement_speed(df):
+        df['r_heel_speed'] = np.sqrt(df['r_heel_x'].diff()**2 + 
+                                     df['r_heel_y'].diff()**2 + 
+                                     df['r_heel_z'].diff()**2) / df['time'].diff()
+        
+    @staticmethod
+    def calculate_angle(p1, p2, p3):
+        v1 = p1 - p2
+        v2 = p3 - p2
+        cos_theta = np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
+        angle = np.arccos(np.clip(cos_theta, -1.0, 1.0))
+        return np.degrees(angle)
+
+    @staticmethod
+    def calculate_angle_between_segments(df):
+        angles = []
+        for i in range(len(df)):
+            p1 = np.array([df.loc[i, 'r_shoulder_x'], df.loc[i, 'r_shoulder_y'], df.loc[i, 'r_shoulder_z']])
+            p2 = np.array([df.loc[i, 'r_knee_x'], df.loc[i, 'r_knee_y'], df.loc[i, 'r_knee_z']])
+            p3 = np.array([df.loc[i, 'r_heel_x'], df.loc[i, 'r_heel_y'], df.loc[i, 'r_heel_z']])
+            angles.append(GaitAnalysis.calculate_angle(p1, p2, p3))
+        df['knee_angle'] = angles
