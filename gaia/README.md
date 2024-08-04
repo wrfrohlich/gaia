@@ -1,3 +1,28 @@
+# Experiments
+
+## Steps
+
+1. Correlations:
+    - [ ] Raw data removing NaN data;
+    - [ ] Converting NaN data to mean;
+    - [ ] Normalized data;
+    - [ ] Filtering:
+        - [ ] Butterworth - Low-Pass;
+        - [ ] Butterworth - High-pass;
+        - [ ] Butterworth - Band-pass;
+    - [ ] Vectorization;
+    - [ ] Feature Engineering;
+
+2. Clusters:
+   - [ ] PCA;
+   - [ ] t-SNE;
+   - [ ] K-Means;
+   - [ ] DBSCAN;
+   - [ ] Silhouette Score;
+   - [ ] Davies-Bouldin Coeficient;
+
+## Important Track Points
+
 **Tronco Superior:**
 
 ```

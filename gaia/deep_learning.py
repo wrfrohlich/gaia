@@ -2,8 +2,8 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.preprocessing import StandardScaler
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dense, Dropout, Input
+from tensorflow.keras.models import Sequential # type: ignore
+from tensorflow.keras.layers import LSTM, Dense, Dropout, Input # type: ignore
 from scikeras.wrappers import KerasRegressor
 import matplotlib.pyplot as plt
 

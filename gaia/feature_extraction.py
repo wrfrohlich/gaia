@@ -4,8 +4,8 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
-from keras.models import Model
-from keras.layers import Dense, Conv1D, Flatten, Reshape, Input, Dropout
+from keras.models import Model # type: ignore
+from keras.layers import Dense, Conv1D, Flatten, Reshape, Input, Dropout # type: ignore
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.stats import f_oneway
