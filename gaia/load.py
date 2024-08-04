@@ -1,17 +1,14 @@
-"""
-Load Gait files
-"""
-
 import math
-import pandas as pd
-
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-class GaitLab():
+class GaitLab:
+    """Class to handle gait data from GaitLab files."""
+    
     def __init__(self):
+        """Initialize the GaitLab class with data column names."""
         self.data_force_track = [
             'frame', 'time', 'rx', 'ry', 'rz', 'lx', 'ly', 'lz'
         ]
@@ -61,32 +58,58 @@ class GaitLab():
         ]
 
     def load_data(self, file_path):
-        """Load the data from a text file."""
+        """Load gait data from a text file.
+
+        Args:
+            file_path (str): The path to the data file.
+
+        Returns:
+            pd.DataFrame: DataFrame containing the loaded data.
+        """
         data = []
-        if "force" in file_path:
-            num_columns = 8
-            name_columns = self.data_force_track
-        if "point" in file_path:
-            num_columns = 161
-            name_columns = self.data_point_track
+        num_columns, name_columns = self._get_file_parameters(file_path)
         
         with open(file_path, 'r') as file:
             lines = file.readlines()
             for line in lines:
                 values = line.split()
-                if len(values) == num_columns:
-                    if self.remove_nan_values(values):
-                        data.append(values)
+                if len(values) == num_columns and self._is_valid_record(values):
+                    data.append(values)
 
         df = pd.DataFrame(data, columns=name_columns)
         df = df.apply(pd.to_numeric, errors='coerce')
 
+        # Uncomment this if you need to filter columns based on `important_points`
         # if "point" in file_path:
         #     df = df[self.important_points]
 
         return df
 
-    def remove_nan_values(self, values):
+    def _get_file_parameters(self, file_path):
+        """Determine the number of columns and column names based on file type.
+
+        Args:
+            file_path (str): The path to the data file.
+
+        Returns:
+            tuple: Number of columns and column names.
+        """
+        if "force" in file_path:
+            return 8, self.data_force_track
+        elif "point" in file_path:
+            return 161, self.data_point_track
+        else:
+            raise ValueError("Unsupported file type")
+
+    def _is_valid_record(self, values):
+        """Check if a record has valid data, excluding NaN values.
+
+        Args:
+            values (list): List of values from a record.
+
+        Returns:
+            bool: True if record is valid, False otherwise.
+        """
         try:
             if math.isnan(float(values[4])) and math.isnan(float(values[7])):
                 return False
@@ -95,14 +118,25 @@ class GaitLab():
         return True
 
 
-class GWalk():
+class GWalk:
+    """Class to handle gait data from GWalk files."""
+    
     def __init__(self):
+        """Initialize the GWalk class with data column names."""
         self.data_features = ['time', 'acc_x', 'acc_y', 'acc_z', 'gyro_x',
                               'gyro_y', 'gyro_z', 'roll', 'pitch', 'yaw']
 
     def load_data(self, file_path):
-        """Load the data from a text file."""
+        """Load gait data from a text file.
+
+        Args:
+            file_path (str): The path to the data file.
+
+        Returns:
+            pd.DataFrame: DataFrame containing the loaded data.
+        """
         data = []
+        
         with open(file_path, 'r') as file:
             lines = file.readlines()
             for line in lines:
@@ -114,4 +148,3 @@ class GWalk():
         df = df.apply(pd.to_numeric, errors='coerce')
 
         return df
-

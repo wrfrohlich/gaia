@@ -14,11 +14,6 @@ from scipy.stats import f_oneway
 class FeatureExtraction:
     """
     A class for extracting and analyzing features from wearable and camera data.
-
-    Methods
-    -------
-    feature_extraction(merged_data, wearable_data)
-        Extracts features using an autoencoder and PCA, applies K-Means clustering, and performs analysis and visualization.
     """
 
     def feature_extraction(self, merged_data, wearable_data):
@@ -39,7 +34,7 @@ class FeatureExtraction:
             This method does not return any values. It performs feature extraction, clustering, and generates plots.
         """
         
-        # Normalize the data
+        # Normalize wearable and camera data
         scaler = StandardScaler()
         wearable_scaled = scaler.fit_transform(merged_data[['acc_x', 'acc_y', 'acc_z', 'gyro_x', 'gyro_y', 'gyro_z']])
         camera_scaled = scaler.fit_transform(merged_data.drop(columns=['time']))
@@ -47,7 +42,7 @@ class FeatureExtraction:
         # Prepare data for the autoencoder
         X_wearable = wearable_scaled.reshape((wearable_scaled.shape[0], wearable_scaled.shape[1], 1))
 
-        # Build the autoencoder
+        # Build and compile the autoencoder model
         input_layer = Input(shape=(X_wearable.shape[1], 1))
         x = Conv1D(64, kernel_size=3, activation='relu', padding='same')(input_layer)
         x = Dropout(0.2)(x)
@@ -58,36 +53,35 @@ class FeatureExtraction:
 
         autoencoder = Model(input_layer, decoded)
         encoder = Model(input_layer, encoded)
-
         autoencoder.compile(optimizer='adam', loss='mse')
 
         # Train the autoencoder with wearable data
         autoencoder.fit(X_wearable, X_wearable, epochs=20, verbose=1)
 
-        # Extract features from wearable data using the encoder
+        # Extract features using the encoder
         wearable_features = encoder.predict(X_wearable)
 
-        # Apply PCA to reduce the dimensionality of camera data
+        # Apply PCA to reduce dimensionality of camera data
         pca = PCA(n_components=10)
         camera_features = pca.fit_transform(camera_scaled)
 
         # Combine extracted features
         combined_features = np.concatenate((wearable_features, camera_features), axis=1)
 
-        # Apply K-Means to find common patterns
+        # Apply K-Means clustering
         kmeans = KMeans(n_clusters=3)
         clusters = kmeans.fit_predict(combined_features)
 
-        # Add clusters to the original data
+        # Add cluster labels to the original data
         merged_data['cluster'] = clusters
 
-        # Visualize clusters
+        # Visualize clusters in the original feature space
         sns.scatterplot(x='acc_x', y='r should.X', hue='cluster', data=merged_data, palette='viridis')
         plt.title('Clusters between Wearable and Kinematic Data')
         plt.savefig('Clusters.png')
         plt.clf()
 
-        # Calculate the silhouette coefficient
+        # Calculate and print the silhouette coefficient
         silhouette_avg = silhouette_score(combined_features, clusters)
         print(f'Silhouette Coefficient: {silhouette_avg}')
 
@@ -99,7 +93,7 @@ class FeatureExtraction:
                 anova_results[col] = f_oneway(*groups)
                 print(f'{col} - ANOVA: F-value={anova_results[col].statistic}, p-value={anova_results[col].pvalue}')
 
-        # Visualization with PCA (reducing to 2D for visualization)
+        # Visualization with PCA (2D projection for clustering)
         pca_2d = PCA(n_components=2)
         combined_2d = pca_2d.fit_transform(combined_features)
 
@@ -113,18 +107,61 @@ class FeatureExtraction:
 
     @staticmethod
     def distance_between_points(df):
+        """
+        Calculate the Euclidean distance between the right and left heel positions.
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            DataFrame containing columns for right and left heel positions.
+
+        Returns
+        -------
+        None
+            Adds a new column 'dist_heel' to the DataFrame.
+        """
         df['dist_heel'] = np.sqrt((df['r_heel_x'] - df['l_heel_x'])**2 + 
                                   (df['r_heel_y'] - df['l_heel_y'])**2 + 
                                   (df['r_heel_z'] - df['l_heel_z'])**2)
     
     @staticmethod
     def calculate_movement_speed(df):
+        """
+        Calculate the speed of movement for the right heel.
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            DataFrame containing columns for right heel positions and time.
+
+        Returns
+        -------
+        None
+            Adds a new column 'r_heel_speed' to the DataFrame.
+        """
         df['r_heel_speed'] = np.sqrt(df['r_heel_x'].diff()**2 + 
                                      df['r_heel_y'].diff()**2 + 
                                      df['r_heel_z'].diff()**2) / df['time'].diff()
         
     @staticmethod
     def calculate_angle(p1, p2, p3):
+        """
+        Calculate the angle between three points.
+
+        Parameters
+        ----------
+        p1 : np.array
+            Coordinates of the first point.
+        p2 : np.array
+            Coordinates of the second point (vertex of the angle).
+        p3 : np.array
+            Coordinates of the third point.
+
+        Returns
+        -------
+        float
+            The angle in degrees.
+        """
         v1 = p1 - p2
         v2 = p3 - p2
         cos_theta = np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
@@ -133,10 +170,23 @@ class FeatureExtraction:
 
     @staticmethod
     def calculate_angle_between_segments(df):
+        """
+        Calculate the angle between segments formed by right shoulder, right knee, and right heel positions.
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            DataFrame containing columns for right shoulder, knee, and heel positions.
+
+        Returns
+        -------
+        None
+            Adds a new column 'knee_angle' to the DataFrame.
+        """
         angles = []
         for i in range(len(df)):
             p1 = np.array([df.loc[i, 'r_shoulder_x'], df.loc[i, 'r_shoulder_y'], df.loc[i, 'r_shoulder_z']])
             p2 = np.array([df.loc[i, 'r_knee_x'], df.loc[i, 'r_knee_y'], df.loc[i, 'r_knee_z']])
             p3 = np.array([df.loc[i, 'r_heel_x'], df.loc[i, 'r_heel_y'], df.loc[i, 'r_heel_z']])
-            angles.append(GaitAnalysis.calculate_angle(p1, p2, p3))
+            angles.append(FeatureExtraction.calculate_angle(p1, p2, p3))
         df['knee_angle'] = angles
