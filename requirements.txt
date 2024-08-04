@@ -5,3 +5,5 @@ pandas
 tensorflow
 matplotlib
 scikit-learn
+shap
+lime

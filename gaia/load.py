@@ -81,8 +81,8 @@ class GaitLab():
         df = pd.DataFrame(data, columns=name_columns)
         df = df.apply(pd.to_numeric, errors='coerce')
 
-        if "point" in file_path:
-            df = df[self.important_points]
+        # if "point" in file_path:
+        #     df = df[self.important_points]
 
         return df
 

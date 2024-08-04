@@ -4,6 +4,7 @@ from gaia.correlation import Correlation
 from gaia.processing import Processing
 from gaia.feature_extraction import FeatureExtraction
 from gaia.machine_learning import prediction
+from gaia.deep_learning import deep_learning
 
 
 class Routine():
@@ -56,9 +57,25 @@ class Routine():
 
         prediction(gwalk_data, gait_lab_data)
 
+    def run_deep_learning(self):
+        gl = GaitLab()
+        gait_lab_data = gl.load_data(self.gait_lab_file)
+
+        gw = GWalk()
+        gwalk_data = gw.load_data(self.gwalk_file)
+
+        proc = Processing()
+        gait_lab_data = proc.preprocessing(gait_lab_data)
+        gwalk_data = proc.preprocessing(gwalk_data)
+
+        print(gait_lab_data)
+
+        deep_learning(gwalk_data, gait_lab_data)
+
 
 if __name__ == '__main__':
     routine = Routine()
-    routine.run_correlation()
+    routine.run_deep_learning()
+    #routine.run_correlation()
     #routine.run_feature_extraction()
     #routine.run_machine_learning()
