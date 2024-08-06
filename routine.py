@@ -1,7 +1,7 @@
 from gaia.config import Config
 from gaia.load import GaitLab, GWalk
 from gaia.correlation import Correlation
-from gaia.processing import Processing
+from gaia.preprocessing import Preprocessing
 from gaia.feature_extraction import FeatureExtraction
 from gaia.machine_learning import prediction
 from gaia.deep_learning import deep_learning
@@ -30,7 +30,7 @@ class Routine():
         gw = GWalk()
         gwalk_data = gw.load_data(self.gwalk_file)
 
-        proc = Processing()
+        proc = Preprocessing()
         merged_data = proc.merge(gait_lab_data, gwalk_data)
 
     def run_experiment02(self):
@@ -52,7 +52,7 @@ class Routine():
         gw = GWalk()
         gwalk_data = gw.load_data(self.gwalk_file)
 
-        proc = Processing()
+        proc = Preprocessing()
         merged_data = proc.run(gait_lab_data, gwalk_data)
 
         feat_ext = FeatureExtraction()
@@ -65,7 +65,7 @@ class Routine():
         gw = GWalk()
         gwalk_data = gw.load_data(self.gwalk_file)
 
-        proc = Processing()
+        proc = Preprocessing()
         gait_lab_data = proc.preprocessing(gait_lab_data)
         gwalk_data = proc.preprocessing(gwalk_data)
 
@@ -78,7 +78,7 @@ class Routine():
         gw = GWalk()
         gwalk_data = gw.load_data(self.gwalk_file)
 
-        proc = Processing()
+        proc = Preprocessing()
         gait_lab_data = proc.preprocessing(gait_lab_data)
         gwalk_data = proc.preprocessing(gwalk_data)
 
