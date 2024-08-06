@@ -1,7 +1,7 @@
 from gaia.config import Config
 from gaia.load import GaitLab, GWalk
 from gaia.correlation import Correlation
-from gaia.processing import Processing
+from gaia.preprocessing import Preprocessing
 from gaia.feature_extraction import FeatureExtraction
 from gaia.machine_learning import prediction
 from gaia.deep_learning import deep_learning
@@ -18,15 +18,29 @@ class Routine():
         self.gait_lab_records = ["force_track", "point_track", "torque_track"]
         self.participants = ["040102", "040103", "040104", "040105"]
 
-    def run_correlation(self):
+    def run_experiment01(self):
+        """
+        Correlation - Raw data removing NaN data
+        """
+        name = "experiment01"
+
         gl = GaitLab()
         gait_lab_data = gl.load_data(self.gait_lab_file)
 
         gw = GWalk()
         gwalk_data = gw.load_data(self.gwalk_file)
 
-        proc = Processing()
-        merged_data = proc.run(gait_lab_data, gwalk_data)
+        proc = Preprocessing()
+        merged_data = proc.merge(gait_lab_data, gwalk_data)
+
+    def run_experiment02(self):
+        name = "experiment02"
+
+    def run_experiment03(self):
+        name = "experiment03"
+
+    def run_correlation(self):
+
 
         corr = Correlation()
         corr.corr_matrix(merged_data)
@@ -38,7 +52,7 @@ class Routine():
         gw = GWalk()
         gwalk_data = gw.load_data(self.gwalk_file)
 
-        proc = Processing()
+        proc = Preprocessing()
         merged_data = proc.run(gait_lab_data, gwalk_data)
 
         feat_ext = FeatureExtraction()
@@ -51,7 +65,7 @@ class Routine():
         gw = GWalk()
         gwalk_data = gw.load_data(self.gwalk_file)
 
-        proc = Processing()
+        proc = Preprocessing()
         gait_lab_data = proc.preprocessing(gait_lab_data)
         gwalk_data = proc.preprocessing(gwalk_data)
 
@@ -64,7 +78,7 @@ class Routine():
         gw = GWalk()
         gwalk_data = gw.load_data(self.gwalk_file)
 
-        proc = Processing()
+        proc = Preprocessing()
         gait_lab_data = proc.preprocessing(gait_lab_data)
         gwalk_data = proc.preprocessing(gwalk_data)
 

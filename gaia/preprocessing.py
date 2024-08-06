@@ -2,7 +2,7 @@ from .filtering import Filtering
 from pandas import DataFrame, merge_asof
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
-class Processing:
+class Preprocessing:
     """
     A class for processing and merging data frames.
 
