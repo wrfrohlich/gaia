@@ -4,6 +4,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
+from os import path
 from scipy.signal import correlate
 from scipy.stats import pearsonr, spearmanr, kendalltau
 
@@ -36,20 +37,18 @@ class Correlation:
         Computes and saves cross-correlation plots for all pairs of columns in the merged data.
     """
 
-    def __init__(self):
+    def __init__(self, name):
         """
         Initializes the Correlation class with Config and sets up directories for saving plots.
         """
-        self.config = Config()
-        self.path_matrix = 'figures/matrix'
-        self.path_cross = 'figures/cross'
+        config = Config()
+        self.path_experiment = config.figures
+        self.points = config.body_parts
 
-        # Create directories if they do not exist
-        if not os.path.exists(self.path_matrix):
-            os.makedirs(self.path_matrix)
-
-        if not os.path.exists(self.path_cross):
-            os.makedirs(self.path_cross)
+        if name != "":
+            self.path_experiment = path.join(self.path_experiment, name)
+            if not path.exists(self.path_experiment):
+                os.makedirs(self.path_experiment)
 
     def corr_matrix(self, data):
         """
@@ -65,37 +64,12 @@ class Correlation:
         None
             This method does not return any values. It generates and saves correlation matrix plots.
         """
-        data_upper = data[[
-            "acc_x", "acc_y", "acc_z",
-            "gyro_x", "gyro_y", "gyro_z",
-            "roll", "pitch", "yaw",
-            "r should_x", "r should_y", "r should_z",
-            "l should_x", "l should_y", "l should_z",
-            "sacrum s_x", "sacrum s_y", "sacrum s_z",
-            "PO_x", "PO_y", "PO_z"
-        ]]
-        data_lower_01 = data[[
-            "acc_x", "acc_y", "acc_z",
-            "gyro_x", "gyro_y", "gyro_z",
-            "roll", "pitch", "yaw",
-            "r knee 1_x", "r knee 1_y", "r knee 1_z",
-            "l knee 1_x", "l knee 1_y", "l knee 1_z",
-            "r mall_x", "r mall_y", "r mall_z",
-            "l mall_x", "l mall_y", "l mall_z"
-        ]]
-        data_lower_02 = data[[
-            "acc_x", "acc_y", "acc_z",
-            "gyro_x", "gyro_y", "gyro_z",
-            "roll", "pitch", "yaw",
-            "r heel_x", "r heel_y", "r heel_z",
-            "l heel_x", "l heel_y", "l heel_z",
-            "r met_x", "r met_y", "r met_z",
-            "l met_x", "l met_y", "l met_z"
-        ]]
-        self.gen_corr_matrix(data_upper, name="upper_body")
-        self.gen_corr_matrix(data_lower_01, name="lower_body_01")
-        self.gen_corr_matrix(data_lower_02, name="lower_body_02")
+        for points in self.points:
+            self.points[points].extend(self.points["imu"])
+            df = data[self.points[points]]
+            self.gen_corr_matrix(df, name=points)
 
+    def vector(self, data):
         # Create a new DataFrame with vector magnitudes and other metrics
         df = pd.DataFrame()
         df["roll"] = data["roll"]
@@ -124,6 +98,36 @@ class Correlation:
                 col1 = columns[i]
                 col2 = columns[j]
                 self.print_cross_correlation(df, col1, col2)
+
+
+    def gen_corr_matrix(self, data, name, method="pearson"):
+        """
+        Generates and saves correlation matrices (Pearson, Spearman, Kendall) for the given data.
+
+        Parameters
+        ----------
+        data : pd.DataFrame
+            A DataFrame containing the data for which to compute correlation matrices.
+        name : str, optional
+            A name to identify the correlation matrix (default is an empty string).
+
+        Returns
+        -------
+        None
+            This method does not return any values. It generates and saves correlation matrix plots.
+        """
+        corr_matrix = data.corr(method=method)
+        plt.figure(figsize=(14, 10))
+        sns.heatmap(corr_matrix, annot=True, fmt=".2f", cmap='coolwarm')
+        plt.title(f'correlation_matrix_{method}_{name}')
+        plt.savefig(f'{self.path_experiment}/matrix_{name}.png')
+        plt.clf()
+
+        mask = np.triu(np.ones_like(corr_matrix, dtype=bool))
+        plt.figure(figsize=(14, 10))
+        sns.heatmap(corr_matrix, mask=mask, annot=True, cmap='coolwarm', vmin=-1, vmax=1, linewidths=0.5)
+        plt.title(f'triangular_correlation_{method}_{name}')
+        plt.savefig(f'{self.path_experiment}/trig_matrix_{name}.png')
 
     def print_cross_correlation(self, df, value_a, value_b):
         """
@@ -214,46 +218,6 @@ class Correlation:
         """
         return np.array([row[f"{prefix}_x"], row[f"{prefix}_y"], row[f"{prefix}_z"]])
 
-    def gen_corr_matrix(self, data, name=""):
-        """
-        Generates and saves correlation matrices (Pearson, Spearman, Kendall) for the given data.
-
-        Parameters
-        ----------
-        data : pd.DataFrame
-            A DataFrame containing the data for which to compute correlation matrices.
-        name : str, optional
-            A name to identify the correlation matrix (default is an empty string).
-
-        Returns
-        -------
-        None
-            This method does not return any values. It generates and saves correlation matrix plots.
-        """
-        corr_matrix_pearson = data.corr(method='pearson')
-        corr_matrix_spearman = data.corr(method='spearman')
-        corr_matrix_kendall = data.corr(method='kendall')
-
-        # Plot and save Pearson correlation matrix
-        plt.figure(figsize=(14, 10))
-        sns.heatmap(corr_matrix_pearson, annot=True, fmt=".2f", cmap='coolwarm')
-        plt.title(f'Correlation Matrix - Pearson {name}')
-        plt.savefig(f'{self.path_matrix}/corr_matrix_pearson_{name}.png')
-        plt.clf()
-
-        # Plot and save Spearman correlation matrix
-        plt.figure(figsize=(14, 10))
-        sns.heatmap(corr_matrix_spearman, annot=True, fmt=".2f", cmap='coolwarm')
-        plt.title(f'Correlation Matrix - Spearman {name}')
-        plt.savefig(f'{self.path_matrix}/corr_matrix_spearman_{name}.png')
-        plt.clf()
-
-        # Plot and save Kendall correlation matrix
-        plt.figure(figsize=(14, 10))
-        sns.heatmap(corr_matrix_kendall, annot=True, fmt=".2f", cmap='coolwarm')
-        plt.title(f'Correlation Matrix - Kendall {name}')
-        plt.savefig(f'{self.path_matrix}/corr_matrix_kendall_{name}.png')
-        plt.clf()
 
     def corr(self, x, y):
         """

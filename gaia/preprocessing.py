@@ -2,23 +2,23 @@ from .filtering import Filtering
 from pandas import DataFrame, merge_asof
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
-class Processing:
+class Preprocessing:
     """
     A class for processing and merging data frames.
 
     Methods
     -------
-    run(df1, df2)
-        Preprocesses and merges two data frames.
-    preprocessing(df)
-        Applies preprocessing steps to a data frame.
+    run(df1, df2, remove_nan=True, convert_nan='mean', interpolate_method='linear', filter_data=True, normalization=None)
+        Preprocesses and merges two data frames with customizable options.
+    preprocess(df, remove_nan=True, convert_nan='mean', interpolate_method='linear', filter_data=True, normalization=None)
+        Applies preprocessing steps to a data frame with customizable options.
     remove_nan(df, param='time')
         Removes rows with NaN values in the specified column.
-    convert_nan(df, type="mean")
-        Replaces NaN values in the data frame based on the specified type.
+    convert_nan(df, method='mean')
+        Replaces NaN values in the data frame based on the specified method.
     normalize_data(df, scaler_type='standard')
         Normalizes the data frame using the specified scaler type.
-    interpolation(df, param='linear')
+    interpolate(df, method='linear')
         Interpolates missing values in the data frame using the specified method.
     merge(df1, df2, param='time')
         Merges two data frames on the specified column using an asof merge.
@@ -30,9 +30,9 @@ class Processing:
         """
         self.filtering = Filtering()
 
-    def run(self, df1, df2):
+    def run(self, df1, df2, remove_nan=True, convert_nan='mean', interpolate_method='linear', filter_data=True, normalization='standard'):
         """
-        Preprocesses and merges two data frames.
+        Preprocesses and merges two data frames with customizable options.
 
         Parameters
         ----------
@@ -40,24 +40,44 @@ class Processing:
             The first data frame to process and merge.
         df2 : pd.DataFrame
             The second data frame to process and merge.
+        remove_nan : bool, optional
+            Whether to remove rows with NaN values (default is True).
+        convert_nan : str, optional
+            Method to replace NaN values ('mean', 'zero', or None, default is 'mean').
+        interpolate_method : str, optional
+            Method for interpolating missing values (default is 'linear').
+        filter_data : bool, optional
+            Whether to apply a Butterworth low-pass filter (default is True).
+        normalization : str, optional
+            Method for normalizing the data ('standard' or 'minmax', default is None).
 
         Returns
         -------
         pd.DataFrame
             The merged data frame after preprocessing.
         """
-        df1 = self.preprocessing(df1)
-        df2 = self.preprocessing(df2)
+        df1 = self.preprocess(df1, remove_nan, convert_nan, interpolate_method, filter_data, normalization)
+        df2 = self.preprocess(df2, remove_nan, convert_nan, interpolate_method, filter_data, normalization)
         return self.merge(df1, df2)
 
-    def preprocessing(self, df):
+    def preprocess(self, df, remove_nan=True, convert_nan='mean', interpolate_method='linear', filter_data=True, normalization='standard'):
         """
-        Applies preprocessing steps to a data frame.
+        Applies preprocessing steps to a data frame with customizable options.
 
         Parameters
         ----------
         df : pd.DataFrame
             The data frame to preprocess.
+        remove_nan : bool, optional
+            Whether to remove rows with NaN values (default is True).
+        convert_nan : str, optional
+            Method to replace NaN values ('mean', 'zero', or None, default is 'mean').
+        interpolate_method : str, optional
+            Method for interpolating missing values (default is 'linear').
+        filter_data : bool, optional
+            Whether to apply a Butterworth low-pass filter (default is True).
+        normalization : str, optional
+            Method for normalizing the data ('standard' or 'minmax', default is None).
 
         Returns
         -------
@@ -65,13 +85,18 @@ class Processing:
             The preprocessed data frame.
         """
         time = df["time"]
-        df = self.remove_nan(df)
-        df = self.convert_nan(df)
-        df = Filtering.butter_lowpass(df)
-        # Uncomment the following lines if interpolation and normalization are needed
-        # df = self.interpolation(df)
-        # df = self.normalize_data(df, scaler_type='standard')
-        # df = self.normalize_data(df, scaler_type='minmax')
+
+        if remove_nan:
+            df = self.remove_nan(df)
+        if convert_nan:
+            df = self.convert_nan(df, method=convert_nan)
+        if interpolate_method:
+            df = self.interpolate(df, method=interpolate_method)
+        if filter_data:
+            df = Filtering.butter_lowpass(df)
+        if normalization:
+            df = self.normalize_data(df, scaler_type=normalization)
+
         df["time"] = time
         return df
 
@@ -93,15 +118,15 @@ class Processing:
         """
         return df.dropna(subset=[param])
     
-    def convert_nan(self, df, type="mean"):
+    def convert_nan(self, df, method="mean"):
         """
-        Replaces NaN values in the data frame based on the specified type.
+        Replaces NaN values in the data frame based on the specified method.
 
         Parameters
         ----------
         df : pd.DataFrame
             The data frame in which to replace NaN values.
-        type : str, optional
+        method : str, optional
             The method for replacing NaN values ('mean' or 'zero', default is 'mean').
 
         Returns
@@ -109,9 +134,9 @@ class Processing:
         pd.DataFrame
             The data frame with NaN values replaced.
         """
-        if type == "mean":
+        if method == "mean":
             df.fillna(df.mean(), inplace=True)
-        elif type == "zero":
+        elif method == "zero":
             df.fillna(0, inplace=True)
         return df
 
@@ -137,7 +162,7 @@ class Processing:
         df_scaled['time'] = df['time'].values
         return df_scaled
 
-    def interpolation(self, df, param='linear'):
+    def interpolate(self, df, method='linear'):
         """
         Interpolates missing values in the data frame using the specified method.
 
@@ -145,7 +170,7 @@ class Processing:
         ----------
         df : pd.DataFrame
             The data frame in which to interpolate missing values.
-        param : str, optional
+        method : str, optional
             The interpolation method to use (default is 'linear').
 
         Returns
@@ -153,7 +178,7 @@ class Processing:
         pd.DataFrame
             The data frame with interpolated values.
         """
-        return df.interpolate(method=param)
+        return df.interpolate(method=method)
 
     def merge(self, df1, df2, param='time'):
         """

@@ -10,7 +10,7 @@ from sklearn.model_selection import cross_val_score
 import matplotlib.pyplot as plt
 
 
-from gaia.processing import Processing
+from gaia.preprocessing import Processing
 
 def prediction(X, y):
     """
