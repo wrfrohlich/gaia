@@ -3,8 +3,6 @@ from gaia.load import GaitLab, GWalk
 from gaia.correlation import Correlation
 from gaia.preprocessing import Preprocessing
 from gaia.feature_extraction import FeatureExtraction
-from gaia.machine_learning import prediction
-from gaia.deep_learning import deep_learning
 
 
 class Routine():
@@ -18,78 +16,90 @@ class Routine():
         self.gait_lab_records = ["force_track", "point_track", "torque_track"]
         self.participants = ["040102", "040103", "040104", "040105"]
 
+        gl = GaitLab()
+        self.df1 = gl.load_data(self.gait_lab_file)
+
+        gw = GWalk()
+        self.df2 = gw.load_data(self.gwalk_file)
+
     def run_experiment01(self):
         """
         Correlation - Raw data removing NaN data
         """
         name = "experiment01"
-
-        gl = GaitLab()
-        gait_lab_data = gl.load_data(self.gait_lab_file)
-
-        gw = GWalk()
-        gwalk_data = gw.load_data(self.gwalk_file)
-
-        proc = Preprocessing()
-        merged_data = proc.merge(gait_lab_data, gwalk_data)
-
-    def run_experiment02(self):
-        name = "experiment02"
-
-    def run_experiment03(self):
-        name = "experiment03"
-
-    def run_correlation(self):
-
-
-        corr = Correlation()
+        preproc = Preprocessing()
+        merged_data = preproc.run(self.df1, self.df2, remove_nan=True, convert_nan=None, interpolate_method=None, filter_data=None, normalization=None)
+        corr = Correlation(name=name)
         corr.corr_matrix(merged_data)
 
-    def run_feature_extraction(self):
-        gl = GaitLab()
-        gait_lab_data = gl.load_data(self.gait_lab_file)
+    def run_experiment02(self):
+        """
+        Correlation - Raw data removing NaN data
+        """
+        name = "experiment02"
+        preproc = Preprocessing()
+        merged_data = preproc.run(self.df1, self.df2, remove_nan=True, convert_nan="zero", interpolate_method=None, filter_data=None, normalization=None)
+        corr = Correlation(name=name)
+        corr.corr_matrix(merged_data)
 
-        gw = GWalk()
-        gwalk_data = gw.load_data(self.gwalk_file)
+    def run_experiment03(self):
+        """
+        Correlation - Raw data removing NaN data
+        """
+        name = "experiment03"
+        preproc = Preprocessing()
+        merged_data = preproc.run(self.df1, self.df2, remove_nan=True, convert_nan="mean", interpolate_method=None, filter_data=None, normalization=None)
+        corr = Correlation(name=name)
+        corr.corr_matrix(merged_data)
 
-        proc = Preprocessing()
-        merged_data = proc.run(gait_lab_data, gwalk_data)
+    def run_experiment04(self):
+        """
+        Correlation - Raw data removing NaN data
+        """
+        name = "experiment04"
+        preproc = Preprocessing()
+        merged_data = preproc.run(self.df1, self.df2, remove_nan=True, convert_nan=None, interpolate_method="linear", filter_data=None, normalization=None)
+        corr = Correlation(name=name)
+        corr.corr_matrix(merged_data)
 
-        feat_ext = FeatureExtraction()
-        feat_ext.feature_extraction(merged_data, gwalk_data)
+    def run_experiment05(self):
+        """
+        Correlation - Raw data removing NaN data
+        """
+        name = "experiment05"
+        preproc = Preprocessing()
+        merged_data = preproc.run(self.df1, self.df2, remove_nan=True, convert_nan="mean", interpolate_method=None, filter_data=True, normalization=None)
+        corr = Correlation(name=name)
+        corr.corr_matrix(merged_data)
 
-    def run_machine_learning(self):
-        gl = GaitLab()
-        gait_lab_data = gl.load_data(self.gait_lab_file)
+    def run_experiment06(self):
+        """
+        Correlation - Raw data removing NaN data
+        """
+        name = "experiment06"
+        preproc = Preprocessing()
+        merged_data = preproc.run(self.df1, self.df2, remove_nan=True, convert_nan=None, interpolate_method="linear", filter_data=True, normalization=None)
+        corr = Correlation(name=name)
+        corr.corr_matrix(merged_data)
 
-        gw = GWalk()
-        gwalk_data = gw.load_data(self.gwalk_file)
+    def run_experiment07(self):
+        """
+        Correlation - Raw data removing NaN data
+        """
+        name = "experiment07"
+        preproc = Preprocessing()
+        merged_data = preproc.run(self.df1, self.df2, remove_nan=True, convert_nan=None, interpolate_method="linear", filter_data=True, normalization="standard")
+        corr = Correlation(name=name)
+        corr.corr_matrix(merged_data)
 
-        proc = Preprocessing()
-        gait_lab_data = proc.preprocessing(gait_lab_data)
-        gwalk_data = proc.preprocessing(gwalk_data)
-
-        prediction(gwalk_data, gait_lab_data)
-
-    def run_deep_learning(self):
-        gl = GaitLab()
-        gait_lab_data = gl.load_data(self.gait_lab_file)
-
-        gw = GWalk()
-        gwalk_data = gw.load_data(self.gwalk_file)
-
-        proc = Preprocessing()
-        gait_lab_data = proc.preprocessing(gait_lab_data)
-        gwalk_data = proc.preprocessing(gwalk_data)
-
-        print(gait_lab_data)
-
-        deep_learning(gwalk_data, gait_lab_data)
 
 
 if __name__ == '__main__':
     routine = Routine()
-    routine.run_deep_learning()
-    #routine.run_correlation()
-    #routine.run_feature_extraction()
-    #routine.run_machine_learning()
+    routine.run_experiment01()
+    routine.run_experiment02()
+    routine.run_experiment03()
+    routine.run_experiment04()
+    routine.run_experiment05()
+    routine.run_experiment06()
+    routine.run_experiment07()

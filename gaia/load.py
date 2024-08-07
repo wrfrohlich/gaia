@@ -44,18 +44,19 @@ class GaitLab:
         ]
         self.important_points = [
             "time",
-            #"c7_x", "c7_y", "c7_z",
+            "c7_x", "c7_y", "c7_z",
             "r should_x", "r should_y", "r should_z", "l should_x", "l should_y", "l should_z",
             "sacrum s_x", "sacrum s_y", "sacrum s_z",
-            #"r asis_x", "r asis_y", "r asis_z", "l asis_x", "l asis_y", "l asis_z",
-            #"MIDASIS_x", "MIDASIS_y", "MIDASIS_z",
+            "r asis_x", "r asis_y", "r asis_z", "l asis_x", "l asis_y", "l asis_z",
+            "MIDASIS_x", "MIDASIS_y", "MIDASIS_z",
             "r knee 1_x", "r knee 1_y", "r knee 1_z", "l knee 1_x", "l knee 1_y", "l knee 1_z",
             "r mall_x", "r mall_y", "r mall_z", "l mall_x", "l mall_y", "l mall_z",
             "r heel_x", "r heel_y", "r heel_z", "l heel_x", "l heel_y", "l heel_z",
             "r met_x", "r met_y", "r met_z", "l met_x", "l met_y", "l met_z",
-            #"SHO_x", "SHO_y", "SHO_z",
+            "SHO_x", "SHO_y", "SHO_z",
             "PO_x", "PO_y", "PO_z"
         ]
+
 
     def load_data(self, file_path):
         """Load gait data from a text file.

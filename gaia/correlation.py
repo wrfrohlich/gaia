@@ -43,6 +43,7 @@ class Correlation:
         """
         config = Config()
         self.path_experiment = config.figures
+        self.points = config.body_parts
 
         if name != "":
             self.path_experiment = path.join(self.path_experiment, name)
@@ -63,10 +64,12 @@ class Correlation:
         None
             This method does not return any values. It generates and saves correlation matrix plots.
         """
-        self.gen_corr_matrix(data_upper, name="upper_body")
-        self.gen_corr_matrix(data_lower_01, name="lower_body_01")
-        self.gen_corr_matrix(data_lower_02, name="lower_body_02")
+        for points in self.points:
+            self.points[points].extend(self.points["imu"])
+            df = data[self.points[points]]
+            self.gen_corr_matrix(df, name=points)
 
+    def vector(self, data):
         # Create a new DataFrame with vector magnitudes and other metrics
         df = pd.DataFrame()
         df["roll"] = data["roll"]
@@ -97,7 +100,7 @@ class Correlation:
                 self.print_cross_correlation(df, col1, col2)
 
 
-    def gen_corr_matrix(self, data, method="pearson"):
+    def gen_corr_matrix(self, data, name, method="pearson"):
         """
         Generates and saves correlation matrices (Pearson, Spearman, Kendall) for the given data.
 
@@ -113,15 +116,18 @@ class Correlation:
         None
             This method does not return any values. It generates and saves correlation matrix plots.
         """
-        corr_matrix_pearson = data.corr(method=method)
-
-        # Plot and save Pearson correlation matrix
+        corr_matrix = data.corr(method=method)
         plt.figure(figsize=(14, 10))
-        sns.heatmap(corr_matrix_pearson, annot=True, fmt=".2f", cmap='coolwarm')
-        plt.title(f'Correlation Matrix - Pearson {name}')
-        plt.savefig(f'{self.path_matrix}/.png')
+        sns.heatmap(corr_matrix, annot=True, fmt=".2f", cmap='coolwarm')
+        plt.title(f'correlation_matrix_{method}_{name}')
+        plt.savefig(f'{self.path_experiment}/matrix_{name}.png')
         plt.clf()
 
+        mask = np.triu(np.ones_like(corr_matrix, dtype=bool))
+        plt.figure(figsize=(14, 10))
+        sns.heatmap(corr_matrix, mask=mask, annot=True, cmap='coolwarm', vmin=-1, vmax=1, linewidths=0.5)
+        plt.title(f'triangular_correlation_{method}_{name}')
+        plt.savefig(f'{self.path_experiment}/trig_matrix_{name}.png')
 
     def print_cross_correlation(self, df, value_a, value_b):
         """
