@@ -76,7 +76,7 @@ class FeatureExtraction:
         merged_data['cluster'] = clusters
 
         # Visualize clusters in the original feature space
-        sns.scatterplot(x='acc_x', y='r should.X', hue='cluster', data=merged_data, palette='viridis')
+        sns.scatterplot(x='acc_x', y='r_should.X', hue='cluster', data=merged_data, palette='viridis')
         plt.title('Clusters between Wearable and Kinematic Data')
         plt.savefig('Clusters.png')
         plt.clf()

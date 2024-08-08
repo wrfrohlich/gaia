@@ -7,50 +7,69 @@ class Config():
         self.path_parent = path.dirname(self.path_project_gaia_parent)
         self.data_path = path.join(self.path_parent, "bittencourt_data")
 
-        self.gait_lab_file = path.join(self.data_path, "point_track_040102.emt")
-        #self.gait_lab_file = path.join(self.data_path, "force_track_040102.emt")
+        self.gait_lab_point_file = path.join(self.data_path, "point_track_040102.emt")
+        self.gait_lab_force_file = path.join(self.data_path, "force_track_040102.emt")
         self.gwalk_file =  path.join(self.data_path, "gwalk_040102.txt")
 
         self.figures = path.join(self.path_project_gaia_parent, "figures")
+
+        self.scalars = {
+            'roll', 'pitch', 'yaw'
+        }
+
+        self.vectors = {
+            "acc", "gyro", "c7",
+            "r_should", "l_should",
+            "sacrum s", "r_asis", "l_asis", "MIDASIS",
+            "r_knee 1", "l_knee 1",
+            "r_mall", "l_mall",
+            "r_heel", "l_heel", "r_met", "l_met",
+            "PO", "SHO"
+        }
 
         self.body_parts = {
             "imu": [
                 'acc_x', 'acc_y', 'acc_z', 'gyro_x',
                 'gyro_y', 'gyro_z', 'roll', 'pitch', 'yaw'],
 
-            "head_neck": ["time", "c7_x", "c7_y", "c7_z"],
+            "head_neck": ["c7_x", "c7_y", "c7_z"],
             
             "upper_body": [
-                "r should_x", "r should_y", "r should_z",
-                "l should_x", "l should_y", "l should_z"
+                "r_should_x", "r_should_y", "r_should_z",
+                "l_should_x", "l_should_y", "l_should_z"
             ],
 
             "trunk": [
                 "sacrum s_x", "sacrum s_y", "sacrum s_z",
-                "r asis_x", "r asis_y", "r asis_z",
-                "l asis_x", "l asis_y", "l asis_z",
+                "r_asis_x", "r_asis_y", "r_asis_z",
+                "l_asis_x", "l_asis_y", "l_asis_z",
                 "MIDASIS_x", "MIDASIS_y", "MIDASIS_z"
             ],
 
             "upper_legs": [
-                "r knee 1_x", "r knee 1_y", "r knee 1_z",
-                "l knee 1_x", "l knee 1_y", "l knee 1_z"
+                "r_knee 1_x", "r_knee 1_y", "r_knee 1_z",
+                "l_knee 1_x", "l_knee 1_y", "l_knee 1_z"
             ],
 
             "lower_legs": [
-                "r mall_x", "r mall_y", "r mall_z",
-                "l mall_x", "l mall_y", "l mall_z"
+                "r_mall_x", "r_mall_y", "r_mall_z",
+                "l_mall_x", "l_mall_y", "l_mall_z"
             ],
 
             "feet": [
-                "r heel_x", "r heel_y", "r heel_z",
-                "l heel_x", "l heel_y", "l heel_z",
-                "r met_x", "r met_y", "r met_z",
-                "l met_x", "l met_y", "l met_z"
+                "r_heel_x", "r_heel_y", "r_heel_z",
+                "l_heel_x", "l_heel_y", "l_heel_z",
+                "r_met_x", "r_met_y", "r_met_z",
+                "l_met_x", "l_met_y", "l_met_z"
             ],
 
             "additional_points": [
                 "SHO_x", "SHO_y", "SHO_z",
                 "PO_x", "PO_y", "PO_z"
+            ],
+
+            "force": [
+                'r_force_x', 'r_force_y', 'r_force_z',
+                'l_force_x', 'l_force_y', 'l_force_z'
             ]
         }

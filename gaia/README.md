@@ -27,30 +27,30 @@
 
 ```
 "c7.X", "c7.Y", "c7.Z" (C7 vértebra cervical)
-"r should.X", "r should.Y", "r should.Z" (ombro direito)
-"l should.X", "l should.Y", "l should.Z" (ombro esquerdo)
+"r_should.X", "r_should.Y", "r_should.Z" (ombro direito)
+"l_should.X", "l_should.Y", "l_should.Z" (ombro esquerdo)
 ```
 
 **Tronco Inferior:**
 
 ```
 "sacrum.X", "sacrum.Y", "sacrum.Z" (sacro)
-"r asis.X", "r asis.Y", "r asis.Z" (crista ilíaca antero-superior direita)
-"l asis.X", "l asis.Y", "l asis.Z" (crista ilíaca antero-superior esquerda)
+"r_asis.X", "r_asis.Y", "r_asis.Z" (crista ilíaca antero-superior direita)
+"l_asis.X", "l_asis.Y", "l_asis.Z" (crista ilíaca antero-superior esquerda)
 "MIDASIS.X", "MIDASIS.Y", "MIDASIS.Z" (ponto médio entre as cristas ilíacas antero-superiores)
 ```
 
 **Pernas:**
 
 ```
-"r knee 1.X", "r knee 1.Y", "r knee 1.Z" (joelho direito)
-"l knee 1.X", "l knee 1.Y", "l knee 1.Z" (joelho esquerdo)
-"r mall.X", "r mall.Y", "r mall.Z" (tornozelo direito)
-"l mall.X", "l mall.Y", "l mall.Z" (tornozelo esquerdo)
-"r heel.X", "r heel.Y", "r heel.Z" (calcanhar direito)
-"l heel.X", "l heel.Y", "l heel.Z" (calcanhar esquerdo)
-"r met.X", "r met.Y", "r met.Z" (metatarso direito)
-"l met.X", "l met.Y", "l met.Z" (metatarso esquerdo)
+"r_knee 1.X", "r_knee 1.Y", "r_knee 1.Z" (joelho direito)
+"l_knee 1.X", "l_knee 1.Y", "l_knee 1.Z" (joelho esquerdo)
+"r_mall.X", "r_mall.Y", "r_mall.Z" (tornozelo direito)
+"l_mall.X", "l_mall.Y", "l_mall.Z" (tornozelo esquerdo)
+"r_heel.X", "r_heel.Y", "r_heel.Z" (calcanhar direito)
+"l_heel.X", "l_heel.Y", "l_heel.Z" (calcanhar esquerdo)
+"r_met.X", "r_met.Y", "r_met.Z" (metatarso direito)
+"l_met.X", "l_met.Y", "l_met.Z" (metatarso esquerdo)
 ```
 
 **Outros pontos úteis:**

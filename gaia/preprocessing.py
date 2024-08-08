@@ -1,4 +1,9 @@
+import numpy as np
+import pandas as pd
+
+from .config import Config
 from .filtering import Filtering
+
 from pandas import DataFrame, merge_asof
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
@@ -30,7 +35,9 @@ class Preprocessing:
         """
         self.filtering = Filtering()
 
-    def run(self, df1, df2, remove_nan=True, convert_nan='mean', interpolate_method='linear', filter_data=True, normalization='standard'):
+    def run(self, df1, df2, remove_nan=True, convert_nan='mean',
+            interpolate_method='linear', filter_data="low-pass",
+            normalization='standard'):
         """
         Preprocesses and merges two data frames with customizable options.
 
@@ -60,7 +67,7 @@ class Preprocessing:
         df2 = self.preprocess(df2, remove_nan, convert_nan, interpolate_method, filter_data, normalization)
         return self.merge(df1, df2)
 
-    def preprocess(self, df, remove_nan=True, convert_nan='mean', interpolate_method='linear', filter_data=True, normalization='standard'):
+    def preprocess(self, df, remove_nan=True, convert_nan='mean', interpolate_method='linear', filter_data="low-pass", normalization='standard'):
         """
         Applies preprocessing steps to a data frame with customizable options.
 
@@ -85,15 +92,17 @@ class Preprocessing:
             The preprocessed data frame.
         """
         time = df["time"]
+        if time[0]:
+            time[0] = 0.00
 
         if remove_nan:
             df = self.remove_nan(df)
-        if convert_nan:
-            df = self.convert_nan(df, method=convert_nan)
         if interpolate_method:
             df = self.interpolate(df, method=interpolate_method)
+        if convert_nan:
+            df = self.convert_nan(df, method=convert_nan)
         if filter_data:
-            df = Filtering.butter_lowpass(df)
+            df = Filtering.butter_filter(df, type=filter_data)
         if normalization:
             df = self.normalize_data(df, scaler_type=normalization)
 
@@ -202,3 +211,52 @@ class Preprocessing:
         df2 = df2.sort_values(param)
 
         return merge_asof(df1, df2, on=param)
+
+    def get_magnitude(self, data):
+        cfg = Config()
+
+        df = pd.DataFrame()
+        for scalar in cfg.scalars:
+            df[scalar] = data[scalar]
+
+        for vector in cfg.vectors:
+            df[vector] = self.calculate_magnitude(data, vector)
+        return df
+
+    def calculate_magnitude(self, data, label):
+        """
+        Computes the magnitude of vectors for each row in the DataFrame.
+
+        Parameters
+        ----------
+        data : pd.DataFrame
+            DataFrame containing the data.
+        label : str
+            The prefix of the columns representing the vector components.
+
+        Returns
+        -------
+        pd.Series
+            A Series containing the magnitudes of the vectors.
+        """
+        value = data.apply(lambda row: self.create_vector(row, label), axis=1)
+        value = value.apply(np.linalg.norm)
+        return value
+
+    def create_vector(self, row, prefix):
+        """
+        Creates a 3D vector from row data.
+
+        Parameters
+        ----------
+        row : pd.Series
+            A row of data from the DataFrame.
+        prefix : str
+            The prefix of the columns representing the vector components.
+
+        Returns
+        -------
+        np.array
+            A 3D vector.
+        """
+        return np.array([row[f"{prefix}_x"], row[f"{prefix}_y"], row[f"{prefix}_z"]])

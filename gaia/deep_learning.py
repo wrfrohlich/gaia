@@ -10,11 +10,11 @@ import matplotlib.pyplot as plt
 # List of important points in the gold standard data
 important_points = [
     'sacrum_x', 'sacrum_y', 'sacrum_z',
-    'r asis_x', 'r asis_y', 'r asis_z', 'l asis_x', 'l asis_y', 'l asis_z',
-    'r knee 1_x', 'r knee 1_y', 'r knee 1_z', 'l knee 1_x', 'l knee 1_y', 'l knee 1_z',
-    'r mall_x', 'r mall_y', 'r mall_z', 'l mall_x', 'l mall_y', 'l mall_z',
-    'r heel_x', 'r heel_y', 'r heel_z', 'l heel_x', 'l heel_y', 'l heel_z',
-    'r met_x', 'r met_y', 'r met_z', 'l met_x', 'l met_y', 'l met_z'
+    'r_asis_x', 'r_asis_y', 'r_asis_z', 'l_asis_x', 'l_asis_y', 'l_asis_z',
+    'r_knee 1_x', 'r_knee 1_y', 'r_knee 1_z', 'l_knee 1_x', 'l_knee 1_y', 'l_knee 1_z',
+    'r_mall_x', 'r_mall_y', 'r_mall_z', 'l_mall_x', 'l_mall_y', 'l_mall_z',
+    'r_heel_x', 'r_heel_y', 'r_heel_z', 'l_heel_x', 'l_heel_y', 'l_heel_z',
+    'r_met_x', 'r_met_y', 'r_met_z', 'l_met_x', 'l_met_y', 'l_met_z'
 ]
 
 def build_model(lstm_units=64, dropout_rate=0.2, optimizer='adam'):

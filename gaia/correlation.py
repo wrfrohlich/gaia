@@ -1,6 +1,5 @@
 import os
 import numpy as np
-import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
@@ -52,7 +51,7 @@ class Correlation:
 
     def corr_matrix(self, data):
         """
-        Computes and saves Pearson, Spearman, and Kendall correlation matrices for the given data.
+        Computes and saves Pearson, Spearman, or Kendall correlation matrices for the given data.
 
         Parameters
         ----------
@@ -65,40 +64,29 @@ class Correlation:
             This method does not return any values. It generates and saves correlation matrix plots.
         """
         for points in self.points:
-            self.points[points].extend(self.points["imu"])
-            df = data[self.points[points]]
+            columns = list(self.points[points])
+            columns.extend(self.points["imu"])
+            missing_cols = [col for col in columns if col not in data.columns]
+            if missing_cols:
+                continue
+            df = data[columns]
             self.gen_corr_matrix(df, name=points)
 
-    def vector(self, data):
-        # Create a new DataFrame with vector magnitudes and other metrics
-        df = pd.DataFrame()
-        df["roll"] = data["roll"]
-        df["pitch"] = data["pitch"]
-        df["yaw"] = data["yaw"]
-        df["acc"] = self.get_vector(data, "acc")
-        df["gyro"] = self.get_vector(data, "gyro")
-        df["r should"] = self.get_vector(data, "r should")
-        df["l should"] = self.get_vector(data, "l should")
-        df["sacrum"] = self.get_vector(data, "sacrum s")
-        df["PO"] = self.get_vector(data, "PO")
-        df["r knee 1"] = self.get_vector(data, "r knee 1")
-        df["l knee 1"] = self.get_vector(data, "l knee 1")
-        df["r mall"] = self.get_vector(data, "r mall")
-        df["l mall"] = self.get_vector(data, "l mall")
-        df["r heel"] = self.get_vector(data, "r heel")
-        df["l heel"] = self.get_vector(data, "l heel")
-        df["r met"] = self.get_vector(data, "r met")
-        df["l met"] = self.get_vector(data, "l met")
+    def corr_matrix_special(self, data, name=""):
+        """
+        Computes and saves Pearson, Spearman, and Kendall correlation matrices for the given data.
 
-        self.gen_corr_matrix(df, name="vectors")
+        Parameters
+        ----------
+        data : pd.DataFrame
+            A DataFrame containing the data for which to compute correlation matrices.
 
-        columns = df.columns[df.columns != 'time']
-        for i in range(len(columns)):
-            for j in range(i + 1, len(columns)):
-                col1 = columns[i]
-                col2 = columns[j]
-                self.print_cross_correlation(df, col1, col2)
-
+        Returns
+        -------
+        None
+            This method does not return any values. It generates and saves correlation matrix plots.
+        """
+        self.gen_corr_matrix(data, name=name)
 
     def gen_corr_matrix(self, data, name, method="pearson"):
         """
@@ -178,70 +166,30 @@ class Correlation:
         float
             The cross-correlation value.
         """
+        df["acc"] = self.get_vector(data, "acc")
+        df["gyro"] = self.get_vector(data, "gyro")
+        df["r_should"] = self.get_vector(data, "r_should")
+        df["l_should"] = self.get_vector(data, "l_should")
+        df["sacrum"] = self.get_vector(data, "sacrum s")
+        df["PO"] = self.get_vector(data, "PO")
+        df["r_knee 1"] = self.get_vector(data, "r_knee 1")
+        df["l_knee 1"] = self.get_vector(data, "l_knee 1")
+        df["r_mall"] = self.get_vector(data, "r_mall")
+        df["l_mall"] = self.get_vector(data, "l_mall")
+        df["r_heel"] = self.get_vector(data, "r_heel")
+        df["l_heel"] = self.get_vector(data, "l_heel")
+        df["r_met"] = self.get_vector(data, "r_met")
+        df["l_met"] = self.get_vector(data, "l_met")
+
+        self.gen_corr_matrix(df, name="vectors")
+
+        columns = df.columns[df.columns != 'time']
+        for i in range(len(columns)):
+            for j in range(i + 1, len(columns)):
+                col1 = columns[i]
+                col2 = columns[j]
+                self.print_cross_correlation(df, col1, col2)
         return np.corrcoef(a[:-lag or None], b[lag:])[0, 1]
-
-    def get_vector(self, data, label):
-        """
-        Computes the magnitude of vectors for each row in the DataFrame.
-
-        Parameters
-        ----------
-        data : pd.DataFrame
-            DataFrame containing the data.
-        label : str
-            The prefix of the columns representing the vector components.
-
-        Returns
-        -------
-        pd.Series
-            A Series containing the magnitudes of the vectors.
-        """
-        value = data.apply(lambda row: self.create_vector(row, label), axis=1)
-        value = value.apply(np.linalg.norm)
-        return value
-
-    def create_vector(self, row, prefix):
-        """
-        Creates a 3D vector from row data.
-
-        Parameters
-        ----------
-        row : pd.Series
-            A row of data from the DataFrame.
-        prefix : str
-            The prefix of the columns representing the vector components.
-
-        Returns
-        -------
-        np.array
-            A 3D vector.
-        """
-        return np.array([row[f"{prefix}_x"], row[f"{prefix}_y"], row[f"{prefix}_z"]])
-
-
-    def corr(self, x, y):
-        """
-        Computes Pearson, Spearman, and Kendall correlation coefficients between two series.
-
-        Parameters
-        ----------
-        x : array-like
-            The first data series.
-        y : array-like
-            The second data series.
-
-        Returns
-        -------
-        None
-            This method does not return any values. It prints the correlation coefficients.
-        """
-        pearson_corr, _ = pearsonr(x, y)
-        spearman_corr, _ = spearmanr(x, y)
-        kendall_corr, _ = kendalltau(x, y)
-        
-        print(f'Pearson correlation: {pearson_corr}')
-        print(f'Spearman correlation: {spearman_corr}')
-        print(f'Kendall correlation: {kendall_corr}')
 
     def cross_correlation_uniq(self, series1, series2):
         """
