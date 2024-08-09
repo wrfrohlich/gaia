@@ -148,48 +148,14 @@ class Correlation:
         plt.savefig(f'{self.path_cross}/{value_a}_and_{value_b}.png')
         plt.clf()
 
-    def cross_correlation(self, a, b, lag=0):
-        """
-        Computes the cross-correlation between two data series at a specified lag.
+    def cross_correlation(self, data):
 
-        Parameters
-        ----------
-        a : array-like
-            The first data series.
-        b : array-like
-            The second data series.
-        lag : int, optional
-            The lag at which to compute the cross-correlation (default is 0).
-
-        Returns
-        -------
-        float
-            The cross-correlation value.
-        """
-        df["acc"] = self.get_vector(data, "acc")
-        df["gyro"] = self.get_vector(data, "gyro")
-        df["r_should"] = self.get_vector(data, "r_should")
-        df["l_should"] = self.get_vector(data, "l_should")
-        df["sacrum"] = self.get_vector(data, "sacrum s")
-        df["PO"] = self.get_vector(data, "PO")
-        df["r_knee 1"] = self.get_vector(data, "r_knee 1")
-        df["l_knee 1"] = self.get_vector(data, "l_knee 1")
-        df["r_mall"] = self.get_vector(data, "r_mall")
-        df["l_mall"] = self.get_vector(data, "l_mall")
-        df["r_heel"] = self.get_vector(data, "r_heel")
-        df["l_heel"] = self.get_vector(data, "l_heel")
-        df["r_met"] = self.get_vector(data, "r_met")
-        df["l_met"] = self.get_vector(data, "l_met")
-
-        self.gen_corr_matrix(df, name="vectors")
-
-        columns = df.columns[df.columns != 'time']
+        columns = data.columns[data.columns != 'time']
         for i in range(len(columns)):
             for j in range(i + 1, len(columns)):
                 col1 = columns[i]
                 col2 = columns[j]
-                self.print_cross_correlation(df, col1, col2)
-        return np.corrcoef(a[:-lag or None], b[lag:])[0, 1]
+                self.print_cross_correlation(data, col1, col2)
 
     def cross_correlation_uniq(self, series1, series2):
         """
