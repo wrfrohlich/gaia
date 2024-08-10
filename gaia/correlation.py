@@ -117,7 +117,28 @@ class Correlation:
         plt.title(f'triangular_correlation_{method}_{name}')
         plt.savefig(f'{self.path_experiment}/trig_matrix_{name}.png')
 
-    def print_cross_correlation(self, df, value_a, value_b):
+    def cross_correlation(self, data):
+        """
+        Computes and plots cross-correlation for all pairs of columns in the DataFrame, excluding the 'time' column.
+
+        Parameters
+        ----------
+        data : pd.DataFrame
+            DataFrame containing the data series.
+
+        Returns
+        -------
+        None
+            This method does not return any values. It generates and saves cross-correlation plots.
+        """
+        columns = data.columns[data.columns != 'time']
+        for i in range(len(columns)):
+            for j in range(i + 1, len(columns)):
+                col1 = columns[i]
+                col2 = columns[j]
+                self.print_cross_corr(data, col1, col2)
+
+    def print_cross_corr(self, df, value_a, value_b):
         """
         Computes and plots cross-correlation between two data series.
 
@@ -137,25 +158,41 @@ class Correlation:
         """
         value_A = df[value_a]
         value_B = df[value_b]
-        cross_corrs = [self.cross_correlation(value_A, value_B, lag) for lag in range(-10, 10, 1)]
+
+        # Compute cross-correlation
+        cross_corrs = [self.calculate_cross_correlation(value_A, value_B, lag) for lag in range(-10, 10)]
 
         # Plot cross-correlation
         plt.figure(figsize=(12, 6))
-        plt.plot(range(-10, 10, 1), cross_corrs, marker='o')
+        plt.plot(range(-10, 10), cross_corrs, marker='o')
         plt.xlabel('Lag')
         plt.ylabel('Cross-Correlation')
         plt.title(f'Cross-Correlation between {value_a} and {value_b}')
         plt.savefig(f'{self.path_cross}/{value_a}_and_{value_b}.png')
         plt.clf()
 
-    def cross_correlation(self, data):
+    def calculate_cross_correlation(self, series_a, series_b, lag):
+        """
+        Calculates the cross-correlation between two series for a given lag.
 
-        columns = data.columns[data.columns != 'time']
-        for i in range(len(columns)):
-            for j in range(i + 1, len(columns)):
-                col1 = columns[i]
-                col2 = columns[j]
-                self.print_cross_correlation(data, col1, col2)
+        Parameters
+        ----------
+        series_a : pd.Series
+            The first data series.
+        series_b : pd.Series
+            The second data series.
+        lag : int
+            The lag value for which to calculate the cross-correlation.
+
+        Returns
+        -------
+        float
+            The cross-correlation value at the specified lag.
+        """
+        if lag < 0:
+            return series_a[:lag].corr(series_b[-lag:])
+        else:
+            return series_a[lag:].corr(series_b[:-lag])
 
     def cross_correlation_uniq(self, series1, series2):
         """

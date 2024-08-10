@@ -31,7 +31,6 @@ class Routine():
             - Interpolation
             - Filtering Butterworth Low-Pass
             - Normalization
-            - Vectors Magnitude
         """
         name = "experiment11"
         preproc = Preprocessing()
@@ -40,6 +39,24 @@ class Routine():
         corr = Correlation(name=name)
         corr.corr_matrix(merged_data)
 
+    def run_experiment02(self):
+        """
+        Cross-correlation:
+            - Raw data removing NaN data
+            - Convert NaN into the mean of all the values
+            - Interpolation
+            - Filtering Butterworth Low-Pass
+            - Normalization
+            - Vectors Magnitude
+        """
+        name = "experiment12"
+        preproc = Preprocessing()
+        merged_data = preproc.run(self.df1, self.df2, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="low-pass", normalization="standard")
+        merged_data = preproc.run(merged_data, self.df3, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="low-pass", normalization="standard")
+        corr = Correlation(name=name)
+        corr.cross_correlation(merged_data)
+
 if __name__ == '__main__':
     routine = Routine()
     routine.run_experiment01()
+    routine.run_experiment02()
