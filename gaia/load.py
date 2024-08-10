@@ -18,17 +18,17 @@ class GaitLab:
             "frame", "time", "c7_x", "c7_y", "c7_z", "r_should_x", "r_should_y",
             "r_should_z", "l_should_x", "l_should_y", "l_should_z", "sacrum_x",
             "sacrum_y", "sacrum_z", "r_asis_x", "r_asis_y", "r_asis_z", "r_bar 1_x",
-            "r_bar 1_y", "r_bar 1_z", "r_knee 1_x", "r_knee 1_y", "r_knee 1_z",
+            "r_bar 1_y", "r_bar 1_z", "r_knee_1_x", "r_knee_1_y", "r_knee_1_z",
             "r_bar 2_x", "r_bar 2_y", "r_bar 2_z", "r_mall_x", "r_mall_y", "r_mall_z",
             "r_heel_x", "r_heel_y", "r_heel_z", "r_met_x", "r_met_y", "r_met_z",
             "l_asis_x", "l_asis_y", "l_asis_z", "l_bar 1_x", "l_bar 1_y", "l_bar 1_z",
-            "l_knee 1_x", "l_knee 1_y", "l_knee 1_z", "l_bar 2_x", "l_bar 2_y",
+            "l_knee_1_x", "l_knee_1_y", "l_knee_1_z", "l_bar 2_x", "l_bar 2_y",
             "l_bar 2_z", "l_mall_x", "l_mall_y", "l_mall_z", "l_heel_x", "l_heel_y",
             "l_heel_z", "l_met_x", "l_met_y", "l_met_z", "l_asis s_x", "l_asis s_y",
             "l_asis s_z", "l_bar 1 s_x", "l_bar 1 s_y", "l_bar 1 s_z", "l_knee 1 s_x",
             "l_knee 1 s_y", "l_knee 1 s_z", "l_bar 2 s_x", "l_bar 2 s_y", "l_bar 2 s_z",
-            "l_mall s_x", "l_mall s_y", "l_mall s_z", "sacrum s_x", "sacrum s_y",
-            "sacrum s_z", "r_asis s_x", "r_asis s_y", "r_asis s_z", "r_bar 1 s_x",
+            "l_mall s_x", "l_mall s_y", "l_mall s_z", "sacrum_s_x", "sacrum_s_y",
+            "sacrum_s_z", "r_asis s_x", "r_asis s_y", "r_asis s_z", "r_bar 1 s_x",
             "r_bar 1 s_y", "r_bar 1 s_z", "r_knee 1 s_x", "r_knee 1 s_y",
             "r_knee 1 s_z", "r_bar 2 s_x", "r_bar 2 s_y", "r_bar 2 s_z", "r_mall s_x",
             "r_mall s_y", "r_mall s_z", "MIDASIS_x", "MIDASIS_y", "MIDASIS_z", 
@@ -48,10 +48,10 @@ class GaitLab:
             "time",
             "c7_x", "c7_y", "c7_z",
             "r_should_x", "r_should_y", "r_should_z", "l_should_x", "l_should_y", "l_should_z",
-            "sacrum s_x", "sacrum s_y", "sacrum s_z",
+            "sacrum_s_x", "sacrum_s_y", "sacrum_s_z",
             "r_asis_x", "r_asis_y", "r_asis_z", "l_asis_x", "l_asis_y", "l_asis_z",
             "MIDASIS_x", "MIDASIS_y", "MIDASIS_z",
-            "r_knee 1_x", "r_knee 1_y", "r_knee 1_z", "l_knee 1_x", "l_knee 1_y", "l_knee 1_z",
+            "r_knee_1_x", "r_knee_1_y", "r_knee_1_z", "l_knee_1_x", "l_knee_1_y", "l_knee_1_z",
             "r_mall_x", "r_mall_y", "r_mall_z", "l_mall_x", "l_mall_y", "l_mall_z",
             "r_heel_x", "r_heel_y", "r_heel_z", "l_heel_x", "l_heel_y", "l_heel_z",
             "r_met_x", "r_met_y", "r_met_z", "l_met_x", "l_met_y", "l_met_z",
@@ -82,9 +82,11 @@ class GaitLab:
         df = pd.DataFrame(data, columns=name_columns)
         df = df.apply(pd.to_numeric, errors='coerce')
 
-        # Uncomment this if you need to filter columns based on `important_points`
-        # if "point" in file_path:
-        #     df = df[self.important_points]
+        if "point" in file_path:
+            df = df[self.important_points]
+
+        if "force" in file_path:
+            df = df.drop(columns=['frame'])
 
         return df
 

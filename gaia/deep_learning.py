@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 important_points = [
     'sacrum_x', 'sacrum_y', 'sacrum_z',
     'r_asis_x', 'r_asis_y', 'r_asis_z', 'l_asis_x', 'l_asis_y', 'l_asis_z',
-    'r_knee 1_x', 'r_knee 1_y', 'r_knee 1_z', 'l_knee 1_x', 'l_knee 1_y', 'l_knee 1_z',
+    'r_knee_1_x', 'r_knee_1_y', 'r_knee_1_z', 'l_knee_1_x', 'l_knee_1_y', 'l_knee_1_z',
     'r_mall_x', 'r_mall_y', 'r_mall_z', 'l_mall_x', 'l_mall_y', 'l_mall_z',
     'r_heel_x', 'r_heel_y', 'r_heel_z', 'l_heel_x', 'l_heel_y', 'l_heel_z',
     'r_met_x', 'r_met_y', 'r_met_z', 'l_met_x', 'l_met_y', 'l_met_z'

@@ -40,15 +40,15 @@ class Config():
             ],
 
             "trunk": [
-                "sacrum s_x", "sacrum s_y", "sacrum s_z",
+                "sacrum_s_x", "sacrum_s_y", "sacrum_s_z",
                 "r_asis_x", "r_asis_y", "r_asis_z",
                 "l_asis_x", "l_asis_y", "l_asis_z",
                 "MIDASIS_x", "MIDASIS_y", "MIDASIS_z"
             ],
 
             "upper_legs": [
-                "r_knee 1_x", "r_knee 1_y", "r_knee 1_z",
-                "l_knee 1_x", "l_knee 1_y", "l_knee 1_z"
+                "r_knee_1_x", "r_knee_1_y", "r_knee_1_z",
+                "l_knee_1_x", "l_knee_1_y", "l_knee_1_z"
             ],
 
             "lower_legs": [

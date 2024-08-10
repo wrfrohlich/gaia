@@ -54,7 +54,9 @@ class Routine():
         merged_data = preproc.run(self.df1, self.df2, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="low-pass", normalization="standard")
         merged_data = preproc.run(merged_data, self.df3, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="low-pass", normalization="standard")
         corr = Correlation(name=name)
-        corr.cross_correlation(merged_data)
+        res_corr = corr.get_higher_corr(merged_data, level="0.4")
+        print(res_corr)
+        corr.analyze_correlation()
 
 if __name__ == '__main__':
     routine = Routine()

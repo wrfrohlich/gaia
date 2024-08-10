@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
@@ -48,6 +49,99 @@ class Correlation:
             self.path_experiment = path.join(self.path_experiment, name)
             if not path.exists(self.path_experiment):
                 os.makedirs(self.path_experiment)
+
+    def get_higher_corr(self, data, level=0.7, method="pearson"):
+        """
+        Computes and saves Pearson, Spearman, or Kendall correlation matrices for the given data.
+
+        Parameters
+        ----------
+        data : pd.DataFrame
+            A DataFrame containing the data for which to compute correlation matrices.
+
+        Returns
+        -------
+        None
+            This method does not return any values. It generates and saves correlation matrix plots.
+        """
+        try:
+            level = float(level)
+        except ValueError:
+            raise ValueError(f"Level should be a number, but got {level}")
+
+        correlations_list = []
+
+        for points in self.points:
+            if points == "imu":
+                continue
+            columns = list(self.points[points])
+            columns.extend(self.points["imu"])
+            missing_cols = [col for col in columns if col not in data.columns]
+            if missing_cols:
+                continue
+            
+            df = data[columns]
+            df = df.loc[:, ~df.columns.duplicated()]
+            corr_matrix = df.corr(method=method)
+            
+            for x in corr_matrix.columns:
+                if x in self.points["imu"]:
+                    for y in corr_matrix.index:
+                        if not y in self.points["imu"]:
+                            correlation_value = corr_matrix.loc[y, x]
+                            if abs(correlation_value) > level and x != y:
+                                correlations_list.append({
+                                    'group': points,
+                                    'imu': x,
+                                    'point': y,
+                                    'corr': correlation_value
+                                })
+
+        correlations_df = pd.DataFrame(correlations_list)
+        correlations_df = correlations_df.sort_values(by=["imu", "corr"], ascending=[True, False])
+        correlations_df = correlations_df.reset_index(drop=True)
+
+        correlations_df.to_csv(f'{self.path_experiment}/correlations.csv', index=False)
+        
+
+        return correlations_df
+
+
+    def analyze_correlation(self):
+        imus = self.points["imu"]
+        data = pd.read_csv(f'{self.path_experiment}/correlations.csv')
+
+        correlation_report = {}
+
+        # Certifique-se de que as colunas 'imu' e 'point' existem
+        if 'imu' not in data.columns or 'point' not in data.columns:
+            raise ValueError("O arquivo CSV não contém as colunas esperadas 'imu' e 'point'.")
+
+        for imu in imus:
+            # Filtrar e ordenar o DataFrame para o IMU atual
+            filtered_df = data[data["imu"] == imu]
+            filtered_df = filtered_df.sort_values(by=["point"], ascending=True).reset_index(drop=True)
+
+            # Verificar se há resultados filtrados
+            if not filtered_df.empty:
+                correlation_report[imu] = filtered_df["point"].tolist()
+
+        if correlation_report:
+            # Converter o dicionário em um DataFrame
+            df_report = pd.DataFrame.from_dict(correlation_report, orient='index')
+
+            # Preencher NaNs com valores padronizados (se necessário)
+            df_report = df_report.fillna("")
+
+            # Salvar o DataFrame em um arquivo CSV
+            output_path = f'{self.path_experiment}/correlation_report.csv'
+            df_report.to_csv(output_path, sep=';', index=True, header=True)
+
+            print(f"Relatório de correlação exportado para: {output_path}")
+            return df_report
+        else:
+            print("Nenhum dado disponível para o relatório de correlação.")
+            return pd.DataFrame()  # Retornar um DataFrame vazio se não houver dados
 
     def corr_matrix(self, data):
         """
@@ -168,7 +262,7 @@ class Correlation:
         plt.xlabel('Lag')
         plt.ylabel('Cross-Correlation')
         plt.title(f'Cross-Correlation between {value_a} and {value_b}')
-        plt.savefig(f'{self.path_cross}/{value_a}_and_{value_b}.png')
+        plt.savefig(f'{self.path_experiment}/cross_cor_{value_a}_{value_b}.png')
         plt.clf()
 
     def calculate_cross_correlation(self, series_a, series_b, lag):
