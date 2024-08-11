@@ -16,30 +16,43 @@ class Correlation:
 
     Attributes
     ----------
-    config : Config
-        An instance of the Config class.
-    path_matrix : str
-        Directory path for saving correlation matrix plots.
-    path_cross : str
-        Directory path for saving cross-correlation plots.
+    path_experiment : str
+        Directory path for saving correlation matrices and cross-correlation plots.
+    points : dict
+        Dictionary containing body parts and IMU points as defined in the configuration file.
 
     Methods
     -------
-    __init__()
+    __init__(name)
         Initializes the Correlation class and creates necessary directories for saving plots.
+    get_higher_corr(data, level=0.7, method="pearson")
+        Computes and saves high correlation values between body points and IMUs.
+    analyze_correlation()
+        Analyzes correlations from a CSV file and generates a report.
     corr_matrix(data)
-        Computes and saves correlation matrices (Pearson, Spearman, Kendall) for the given data.
-    corr(x, y)
-        Computes Pearson, Spearman, and Kendall correlation coefficients between two series.
+        Computes and saves Pearson, Spearman, or Kendall correlation matrices for the given data.
+    corr_matrix_special(data, name="")
+        Computes and saves correlation matrices with a specific name.
+    gen_corr_matrix(data, name, method="pearson")
+        Generates and saves correlation matrices for the given data.
+    cross_correlation(data)
+        Computes and plots cross-correlation for all pairs of columns in the DataFrame.
+    print_cross_corr(df, value_a, value_b)
+        Computes and plots cross-correlation between two data series.
+    calculate_cross_correlation(series_a, series_b, lag)
+        Calculates the cross-correlation between two series for a given lag.
     cross_correlation_uniq(series1, series2)
-        Computes cross-correlation between two series.
-    cross_correlation(merged_data)
-        Computes and saves cross-correlation plots for all pairs of columns in the merged data.
+        Computes the cross-correlation between two data series.
     """
 
     def __init__(self, name):
         """
         Initializes the Correlation class with Config and sets up directories for saving plots.
+
+        Parameters
+        ----------
+        name : str
+            A name for the experiment to create a specific directory for saving results.
         """
         config = Config()
         self.path_experiment = config.figures
@@ -52,17 +65,21 @@ class Correlation:
 
     def get_higher_corr(self, data, level=0.7, method="pearson"):
         """
-        Computes and saves Pearson, Spearman, or Kendall correlation matrices for the given data.
+        Computes and saves high correlation values between body points and IMUs.
 
         Parameters
         ----------
         data : pd.DataFrame
             A DataFrame containing the data for which to compute correlation matrices.
+        level : float, optional
+            The correlation level threshold above which the correlations are considered significant (default is 0.7).
+        method : str, optional
+            The method used for computing the correlation ('pearson', 'spearman', 'kendall') (default is 'pearson').
 
         Returns
         -------
-        None
-            This method does not return any values. It generates and saves correlation matrix plots.
+        pd.DataFrame
+            A DataFrame containing the correlations that meet the threshold.
         """
         try:
             level = float(level)
@@ -87,7 +104,7 @@ class Correlation:
             for x in corr_matrix.columns:
                 if x in self.points["imu"]:
                     for y in corr_matrix.index:
-                        if not y in self.points["imu"]:
+                        if y not in self.points["imu"]:
                             correlation_value = corr_matrix.loc[y, x]
                             if abs(correlation_value) > level and x != y:
                                 correlations_list.append({
@@ -102,46 +119,47 @@ class Correlation:
         correlations_df = correlations_df.reset_index(drop=True)
 
         correlations_df.to_csv(f'{self.path_experiment}/correlations.csv', index=False)
-        
 
         return correlations_df
 
-
     def analyze_correlation(self):
+        """
+        Analyzes correlations from a CSV file and generates a report.
+
+        This method reads the correlations.csv file, analyzes the correlations, and generates
+        a report showing which body points have significant correlations with each IMU.
+
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame containing the correlation report, with IMUs as rows and correlated points as columns.
+        """
         imus = self.points["imu"]
         data = pd.read_csv(f'{self.path_experiment}/correlations.csv')
 
         correlation_report = {}
 
-        # Certifique-se de que as colunas 'imu' e 'point' existem
         if 'imu' not in data.columns or 'point' not in data.columns:
-            raise ValueError("O arquivo CSV não contém as colunas esperadas 'imu' e 'point'.")
+            raise ValueError("The CSV file does not contain the expected 'imu' and 'point' columns.")
 
         for imu in imus:
-            # Filtrar e ordenar o DataFrame para o IMU atual
             filtered_df = data[data["imu"] == imu]
             filtered_df = filtered_df.sort_values(by=["point"], ascending=True).reset_index(drop=True)
 
-            # Verificar se há resultados filtrados
             if not filtered_df.empty:
                 correlation_report[imu] = filtered_df["point"].tolist()
 
         if correlation_report:
-            # Converter o dicionário em um DataFrame
             df_report = pd.DataFrame.from_dict(correlation_report, orient='index')
-
-            # Preencher NaNs com valores padronizados (se necessário)
             df_report = df_report.fillna("")
-
-            # Salvar o DataFrame em um arquivo CSV
             output_path = f'{self.path_experiment}/correlation_report.csv'
             df_report.to_csv(output_path, sep=';', index=True, header=True)
 
-            print(f"Relatório de correlação exportado para: {output_path}")
+            print(f"Correlation report exported to: {output_path}")
             return df_report
         else:
-            print("Nenhum dado disponível para o relatório de correlação.")
-            return pd.DataFrame()  # Retornar um DataFrame vazio se não houver dados
+            print("No data available for the correlation report.")
+            return pd.DataFrame()  # Return an empty DataFrame if there is no data
 
     def corr_matrix(self, data):
         """
@@ -174,6 +192,8 @@ class Correlation:
         ----------
         data : pd.DataFrame
             A DataFrame containing the data for which to compute correlation matrices.
+        name : str, optional
+            A name to identify the correlation matrix (default is an empty string).
 
         Returns
         -------
@@ -190,8 +210,10 @@ class Correlation:
         ----------
         data : pd.DataFrame
             A DataFrame containing the data for which to compute correlation matrices.
-        name : str, optional
-            A name to identify the correlation matrix (default is an empty string).
+        name : str
+            A name to identify the correlation matrix.
+        method : str, optional
+            The method used for computing the correlation ('pearson', 'spearman', 'kendall') (default is 'pearson').
 
         Returns
         -------
@@ -241,28 +263,19 @@ class Correlation:
         df : pd.DataFrame
             DataFrame containing the data series.
         value_a : str
-            The first data series name.
+            The first data series for cross-correlation.
         value_b : str
-            The second data series name.
+            The second data series for cross-correlation.
 
         Returns
         -------
         None
             This method does not return any values. It generates and saves cross-correlation plots.
         """
-        value_A = df[value_a]
-        value_B = df[value_b]
-
-        # Compute cross-correlation
-        cross_corrs = [self.calculate_cross_correlation(value_A, value_B, lag) for lag in range(-10, 10)]
-
-        # Plot cross-correlation
-        plt.figure(figsize=(12, 6))
-        plt.plot(range(-10, 10), cross_corrs, marker='o')
-        plt.xlabel('Lag')
-        plt.ylabel('Cross-Correlation')
-        plt.title(f'Cross-Correlation between {value_a} and {value_b}')
-        plt.savefig(f'{self.path_experiment}/cross_cor_{value_a}_{value_b}.png')
+        plt.xcorr(df[value_a], df[value_b], maxlags=100, usevlines=True, normed=True, lw=2)
+        plt.grid(True)
+        plt.title(f'cross_correlation {value_a} vs {value_b}')
+        plt.savefig(f'{self.path_experiment}/cross_corr_{value_a}_vs_{value_b}.png')
         plt.clf()
 
     def calculate_cross_correlation(self, series_a, series_b, lag):
@@ -276,17 +289,14 @@ class Correlation:
         series_b : pd.Series
             The second data series.
         lag : int
-            The lag value for which to calculate the cross-correlation.
+            The lag value for which to compute the cross-correlation.
 
         Returns
         -------
         float
             The cross-correlation value at the specified lag.
         """
-        if lag < 0:
-            return series_a[:lag].corr(series_b[-lag:])
-        else:
-            return series_a[lag:].corr(series_b[:-lag])
+        return np.corrcoef(series_a[:-lag], series_b[lag:])[0, 1]
 
     def cross_correlation_uniq(self, series1, series2):
         """
@@ -294,16 +304,14 @@ class Correlation:
 
         Parameters
         ----------
-        series1 : array-like
+        series1 : pd.Series
             The first data series.
-        series2 : array-like
+        series2 : pd.Series
             The second data series.
 
         Returns
         -------
-        tuple
-            A tuple containing the lags and the cross-correlation values.
+        np.ndarray
+            An array of cross-correlation values for different lags.
         """
-        correlation = correlate(series1, series2, mode='full')
-        lags = np.arange(-len(series1) + 1, len(series1))
-        return lags, correlation
+        return correlate(series1, series2)
