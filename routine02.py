@@ -41,7 +41,7 @@ class Routine():
 
     def run_experiment02(self):
         """
-        Cross-correlation:
+        Correlation:
             - Raw data removing NaN data
             - Convert NaN into the mean of all the values
             - Interpolation
@@ -55,10 +55,49 @@ class Routine():
         merged_data = preproc.run(merged_data, self.df3, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="low-pass", normalization="standard")
         corr = Correlation(name=name)
         res_corr = corr.get_higher_corr(merged_data, level="0.4")
-        print(res_corr)
         corr.analyze_correlation()
+
+    def run_experiment03(self):
+        """
+        Cross-correlation:
+            - Raw data removing NaN data
+            - Convert NaN into the mean of all the values
+            - Interpolation
+            - Filtering Butterworth Low-Pass
+            - Normalization
+            - Vectors Magnitude
+        """
+        name = "experiment13"
+        preproc = Preprocessing()
+        merged_data = preproc.run(self.df1, self.df2, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="low-pass", normalization="standard")
+        merged_data = preproc.run(merged_data, self.df3, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="low-pass", normalization="standard")
+        corr = Correlation(name=name)
+        corr.get_higher_corr(merged_data, level="0.4")
+        corr_data = corr.analyze_correlation()
+        corr.cross_correlation(merged_data, corr_data)
+
+    def run_experiment04(self):
+        """
+        Cross-correlation:
+            - Raw data removing NaN data
+            - Convert NaN into the mean of all the values
+            - Interpolation
+            - Filtering Butterworth Low-Pass
+            - Normalization
+            - Vectors Magnitude
+        """
+        name = "experiment14"
+        preproc = Preprocessing()
+        merged_data = preproc.run(self.df1, self.df2, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="low-pass", normalization="standard")
+        merged_data = preproc.run(merged_data, self.df3, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="low-pass", normalization="standard")
+        corr = Correlation(name=name)
+        corr.get_higher_corr(merged_data, level="0.4")
+        corr_data = corr.analyze_correlation()
+        corr.cross_correlation_analysis(merged_data, corr_data)
 
 if __name__ == '__main__':
     routine = Routine()
-    routine.run_experiment01()
-    routine.run_experiment02()
+    # routine.run_experiment01()
+    # routine.run_experiment02()
+    routine.run_experiment03()
+    routine.run_experiment04()

@@ -233,7 +233,7 @@ class Correlation:
         plt.title(f'triangular_correlation_{method}_{name}')
         plt.savefig(f'{self.path_experiment}/trig_matrix_{name}.png')
 
-    def cross_correlation(self, data):
+    def cross_correlation(self, data, report):
         """
         Computes and plots cross-correlation for all pairs of columns in the DataFrame, excluding the 'time' column.
 
@@ -247,12 +247,10 @@ class Correlation:
         None
             This method does not return any values. It generates and saves cross-correlation plots.
         """
-        columns = data.columns[data.columns != 'time']
-        for i in range(len(columns)):
-            for j in range(i + 1, len(columns)):
-                col1 = columns[i]
-                col2 = columns[j]
-                self.print_cross_corr(data, col1, col2)
+        for idx in report:
+            for imu in report.index:
+                if report[idx][imu]:
+                    self.print_cross_corr(data, imu, report[idx][imu])
 
     def print_cross_corr(self, df, value_a, value_b):
         """
@@ -298,20 +296,65 @@ class Correlation:
         """
         return np.corrcoef(series_a[:-lag], series_b[lag:])[0, 1]
 
-    def cross_correlation_uniq(self, series1, series2):
+    def find_best_cross_correlation_lag(self, series_a, series_b, max_lag=100):
         """
-        Computes the cross-correlation between two data series.
+        Finds the best lag (within a range) that gives the highest cross-correlation between two series.
 
         Parameters
         ----------
-        series1 : pd.Series
+        series_a : pd.Series
             The first data series.
-        series2 : pd.Series
+        series_b : pd.Series
             The second data series.
+        max_lag : int, optional
+            The maximum lag to consider when searching for the best correlation, by default 100.
 
         Returns
         -------
-        np.ndarray
-            An array of cross-correlation values for different lags.
+        best_lag : int
+            The lag that results in the highest cross-correlation.
+        best_corr : float
+            The highest cross-correlation value.
         """
-        return correlate(series1, series2)
+        best_lag = 0
+        best_corr = -1
+        for lag in range(1, max_lag + 1):
+            corr = self.calculate_cross_correlation(series_a, series_b, lag)
+            if corr > best_corr:
+                best_corr = corr
+                best_lag = lag
+        return best_lag, best_corr
+
+    def cross_correlation_analysis(self, data, report, max_lag=100):
+        """
+        Analyzes cross-correlation for all pairs of series, finds the best lag for each pair, and saves the results in a CSV.
+
+        Parameters
+        ----------
+        data : pd.DataFrame
+            DataFrame containing the data series.
+        report : pd.DataFrame
+            DataFrame specifying which series pairs to analyze.
+        max_lag : int, optional
+            The maximum lag to consider when searching for the best correlation, by default 100.
+        """
+        results = []
+        for idx in report:
+            for imu in report.index:
+                if report[idx][imu]:
+                    best_lag, best_corr = self.find_best_cross_correlation_lag(data[imu], data[report[idx][imu]], max_lag)
+                    results.append({
+                        'imu': imu,
+                        'kinematic': report[idx][imu],
+                        'lag': best_lag,
+                        'corr': best_corr
+                    })
+                    self.print_cross_corr(data, imu, report[idx][imu])
+        
+        # Save results to CSV
+        results_df = pd.DataFrame(results)
+        results_df = results_df.sort_values(by=["imu", "corr"], ascending=[True, False])
+        results_df = results_df.reset_index(drop=True)
+        results_df.to_csv(f'{self.path_experiment}/cross_correlation_results.csv', index=False)
+
+        return results_df
