@@ -3,62 +3,25 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-
 from os import path
 from scipy.signal import correlate
 from scipy.stats import pearsonr, spearmanr, kendalltau
-
 from .config import Config
 
 class Correlation:
     """
     A class for computing and visualizing various correlation metrics between data series.
-
-    Attributes
-    ----------
-    path_experiment : str
-        Directory path for saving correlation matrices and cross-correlation plots.
-    points : dict
-        Dictionary containing body parts and IMU points as defined in the configuration file.
-
-    Methods
-    -------
-    __init__(name)
-        Initializes the Correlation class and creates necessary directories for saving plots.
-    get_higher_corr(data, level=0.7, method="pearson")
-        Computes and saves high correlation values between body points and IMUs.
-    analyze_correlation()
-        Analyzes correlations from a CSV file and generates a report.
-    corr_matrix(data)
-        Computes and saves Pearson, Spearman, or Kendall correlation matrices for the given data.
-    corr_matrix_special(data, name="")
-        Computes and saves correlation matrices with a specific name.
-    gen_corr_matrix(data, name, method="pearson")
-        Generates and saves correlation matrices for the given data.
-    cross_correlation(data)
-        Computes and plots cross-correlation for all pairs of columns in the DataFrame.
-    print_cross_corr(df, value_a, value_b)
-        Computes and plots cross-correlation between two data series.
-    calculate_cross_correlation(series_a, series_b, lag)
-        Calculates the cross-correlation between two series for a given lag.
-    cross_correlation_uniq(series1, series2)
-        Computes the cross-correlation between two data series.
     """
 
     def __init__(self, name):
         """
         Initializes the Correlation class with Config and sets up directories for saving plots.
-
-        Parameters
-        ----------
-        name : str
-            A name for the experiment to create a specific directory for saving results.
         """
         config = Config()
         self.path_experiment = config.figures
         self.points = config.body_parts
 
-        if name != "":
+        if name:
             self.path_experiment = path.join(self.path_experiment, name)
             if not path.exists(self.path_experiment):
                 os.makedirs(self.path_experiment)
@@ -66,20 +29,6 @@ class Correlation:
     def get_higher_corr(self, data, level=0.7, method="pearson"):
         """
         Computes and saves high correlation values between body points and IMUs.
-
-        Parameters
-        ----------
-        data : pd.DataFrame
-            A DataFrame containing the data for which to compute correlation matrices.
-        level : float, optional
-            The correlation level threshold above which the correlations are considered significant (default is 0.7).
-        method : str, optional
-            The method used for computing the correlation ('pearson', 'spearman', 'kendall') (default is 'pearson').
-
-        Returns
-        -------
-        pd.DataFrame
-            A DataFrame containing the correlations that meet the threshold.
         """
         try:
             level = float(level)
@@ -91,8 +40,7 @@ class Correlation:
         for points in self.points:
             if points == "imu":
                 continue
-            columns = list(self.points[points])
-            columns.extend(self.points["imu"])
+            columns = list(self.points[points]) + self.points.get("imu", [])
             missing_cols = [col for col in columns if col not in data.columns]
             if missing_cols:
                 continue
@@ -102,9 +50,9 @@ class Correlation:
             corr_matrix = df.corr(method=method)
             
             for x in corr_matrix.columns:
-                if x in self.points["imu"]:
+                if x in self.points.get("imu", []):
                     for y in corr_matrix.index:
-                        if y not in self.points["imu"]:
+                        if y not in self.points.get("imu", []):
                             correlation_value = corr_matrix.loc[y, x]
                             if abs(correlation_value) > level and x != y:
                                 correlations_list.append({
@@ -115,9 +63,7 @@ class Correlation:
                                 })
 
         correlations_df = pd.DataFrame(correlations_list)
-        correlations_df = correlations_df.sort_values(by=["imu", "corr"], ascending=[True, False])
-        correlations_df = correlations_df.reset_index(drop=True)
-
+        correlations_df = correlations_df.sort_values(by=["imu", "corr"], ascending=[True, False]).reset_index(drop=True)
         correlations_df.to_csv(f'{self.path_experiment}/correlations.csv', index=False)
 
         return correlations_df
@@ -125,26 +71,17 @@ class Correlation:
     def analyze_correlation(self):
         """
         Analyzes correlations from a CSV file and generates a report.
-
-        This method reads the correlations.csv file, analyzes the correlations, and generates
-        a report showing which body points have significant correlations with each IMU.
-
-        Returns
-        -------
-        pd.DataFrame
-            A DataFrame containing the correlation report, with IMUs as rows and correlated points as columns.
         """
-        imus = self.points["imu"]
+        imus = self.points.get("imu", [])
         data = pd.read_csv(f'{self.path_experiment}/correlations.csv')
-
-        correlation_report = {}
 
         if 'imu' not in data.columns or 'point' not in data.columns:
             raise ValueError("The CSV file does not contain the expected 'imu' and 'point' columns.")
 
+        correlation_report = {}
         for imu in imus:
             filtered_df = data[data["imu"] == imu]
-            filtered_df = filtered_df.sort_values(by=["point"], ascending=True).reset_index(drop=True)
+            filtered_df = filtered_df.sort_values(by=["point"]).reset_index(drop=True)
 
             if not filtered_df.empty:
                 correlation_report[imu] = filtered_df["point"].tolist()
@@ -159,25 +96,14 @@ class Correlation:
             return df_report
         else:
             print("No data available for the correlation report.")
-            return pd.DataFrame()  # Return an empty DataFrame if there is no data
+            return pd.DataFrame()
 
     def corr_matrix(self, data):
         """
         Computes and saves Pearson, Spearman, or Kendall correlation matrices for the given data.
-
-        Parameters
-        ----------
-        data : pd.DataFrame
-            A DataFrame containing the data for which to compute correlation matrices.
-
-        Returns
-        -------
-        None
-            This method does not return any values. It generates and saves correlation matrix plots.
         """
         for points in self.points:
-            columns = list(self.points[points])
-            columns.extend(self.points["imu"])
+            columns = list(self.points[points]) + self.points.get("imu", [])
             missing_cols = [col for col in columns if col not in data.columns]
             if missing_cols:
                 continue
@@ -187,38 +113,12 @@ class Correlation:
     def corr_matrix_special(self, data, name=""):
         """
         Computes and saves Pearson, Spearman, and Kendall correlation matrices for the given data.
-
-        Parameters
-        ----------
-        data : pd.DataFrame
-            A DataFrame containing the data for which to compute correlation matrices.
-        name : str, optional
-            A name to identify the correlation matrix (default is an empty string).
-
-        Returns
-        -------
-        None
-            This method does not return any values. It generates and saves correlation matrix plots.
         """
         self.gen_corr_matrix(data, name=name)
 
     def gen_corr_matrix(self, data, name, method="pearson"):
         """
         Generates and saves correlation matrices (Pearson, Spearman, Kendall) for the given data.
-
-        Parameters
-        ----------
-        data : pd.DataFrame
-            A DataFrame containing the data for which to compute correlation matrices.
-        name : str
-            A name to identify the correlation matrix.
-        method : str, optional
-            The method used for computing the correlation ('pearson', 'spearman', 'kendall') (default is 'pearson').
-
-        Returns
-        -------
-        None
-            This method does not return any values. It generates and saves correlation matrix plots.
         """
         corr_matrix = data.corr(method=method)
         plt.figure(figsize=(14, 10))
@@ -232,20 +132,11 @@ class Correlation:
         sns.heatmap(corr_matrix, mask=mask, annot=True, cmap='coolwarm', vmin=-1, vmax=1, linewidths=0.5)
         plt.title(f'triangular_correlation_{method}_{name}')
         plt.savefig(f'{self.path_experiment}/trig_matrix_{name}.png')
+        plt.clf()
 
     def cross_correlation(self, data, report):
         """
         Computes and plots cross-correlation for all pairs of columns in the DataFrame, excluding the 'time' column.
-
-        Parameters
-        ----------
-        data : pd.DataFrame
-            DataFrame containing the data series.
-
-        Returns
-        -------
-        None
-            This method does not return any values. It generates and saves cross-correlation plots.
         """
         for idx in report:
             for imu in report.index:
@@ -255,20 +146,6 @@ class Correlation:
     def print_cross_corr(self, df, value_a, value_b):
         """
         Computes and plots cross-correlation between two data series.
-
-        Parameters
-        ----------
-        df : pd.DataFrame
-            DataFrame containing the data series.
-        value_a : str
-            The first data series for cross-correlation.
-        value_b : str
-            The second data series for cross-correlation.
-
-        Returns
-        -------
-        None
-            This method does not return any values. It generates and saves cross-correlation plots.
         """
         plt.xcorr(df[value_a], df[value_b], maxlags=100, usevlines=True, normed=True, lw=2)
         plt.grid(True)
@@ -276,73 +153,44 @@ class Correlation:
         plt.savefig(f'{self.path_experiment}/cross_corr_{value_a}_vs_{value_b}.png')
         plt.clf()
 
-    def calculate_cross_correlation(self, series_a, series_b, lag):
+    def calculate_cross_correlation(self, series_a, series_b):
         """
         Calculates the cross-correlation between two series for a given lag.
-
-        Parameters
-        ----------
-        series_a : pd.Series
-            The first data series.
-        series_b : pd.Series
-            The second data series.
-        lag : int
-            The lag value for which to compute the cross-correlation.
-
-        Returns
-        -------
-        float
-            The cross-correlation value at the specified lag.
         """
-        return np.corrcoef(series_a[:-lag], series_b[lag:])[0, 1]
+        series_a = series_a - np.mean(series_a)
+        series_b = series_b - np.mean(series_b)
+        corr = correlate(series_a, series_b, mode='full')
+        corr /= (np.std(series_a) * np.std(series_b) * len(series_a))
+        lags = np.arange(-(len(series_a) - 1), len(series_a))
+        return corr, lags
 
     def find_best_cross_correlation_lag(self, series_a, series_b, max_lag=100):
         """
         Finds the best lag (within a range) that gives the highest cross-correlation between two series.
-
-        Parameters
-        ----------
-        series_a : pd.Series
-            The first data series.
-        series_b : pd.Series
-            The second data series.
-        max_lag : int, optional
-            The maximum lag to consider when searching for the best correlation, by default 100.
-
-        Returns
-        -------
-        best_lag : int
-            The lag that results in the highest cross-correlation.
-        best_corr : float
-            The highest cross-correlation value.
         """
         best_lag = 0
-        best_corr = -1
-        for lag in range(1, max_lag + 1):
-            corr = self.calculate_cross_correlation(series_a, series_b, lag)
-            if corr > best_corr:
-                best_corr = corr
-                best_lag = lag
+        best_corr = 0
+
+        corr, lags = self.calculate_cross_correlation(series_a, series_b)
+
+        for i, lag in enumerate(lags):
+            if -max_lag <= lag <= max_lag:
+                current_corr = corr[i]
+                if abs(current_corr) > abs(best_corr):
+                    best_corr = current_corr
+                    best_lag = lag
+
         return best_lag, best_corr
 
-    def cross_correlation_analysis(self, data, report, max_lag=100):
+    def cross_correlation_analysis(self, data, report):
         """
         Analyzes cross-correlation for all pairs of series, finds the best lag for each pair, and saves the results in a CSV.
-
-        Parameters
-        ----------
-        data : pd.DataFrame
-            DataFrame containing the data series.
-        report : pd.DataFrame
-            DataFrame specifying which series pairs to analyze.
-        max_lag : int, optional
-            The maximum lag to consider when searching for the best correlation, by default 100.
         """
         results = []
         for idx in report:
             for imu in report.index:
                 if report[idx][imu]:
-                    best_lag, best_corr = self.find_best_cross_correlation_lag(data[imu], data[report[idx][imu]], max_lag)
+                    best_lag, best_corr = self.find_best_cross_correlation_lag(data[imu], data[report[idx][imu]])
                     results.append({
                         'imu': imu,
                         'kinematic': report[idx][imu],
@@ -351,10 +199,35 @@ class Correlation:
                     })
                     self.print_cross_corr(data, imu, report[idx][imu])
         
-        # Save results to CSV
         results_df = pd.DataFrame(results)
-        results_df = results_df.sort_values(by=["imu", "corr"], ascending=[True, False])
-        results_df = results_df.reset_index(drop=True)
+        results_df = results_df.sort_values(by=["imu", "corr"], ascending=[True, False]).reset_index(drop=True)
         results_df.to_csv(f'{self.path_experiment}/cross_correlation_results.csv', index=False)
+
+        return results_df
+
+    def cross_correlation_exploratory(self, data, criterion=0.7, best=False, max_lag=100):
+        """
+        Analyzes cross-correlation for all pairs of series, finds the best lag for each pair, and saves the results in a CSV.
+        """
+        requirement = criterion if best else 0.0
+        results = []
+        for imu in self.points.get("imu", []):
+            for kinematic in data.columns:
+                if kinematic in self.points.get("imu", []):
+                    continue
+                best_lag, best_corr = self.find_best_cross_correlation_lag(data[imu], data[kinematic])
+                if abs(best_corr) >= requirement and abs(best_lag) < max_lag:
+                    if abs(best_corr) >= criterion:
+                        self.print_cross_corr(data, imu, kinematic)
+                    results.append({
+                        'imu': imu,
+                        'kinematic': kinematic,
+                        'lag': best_lag,
+                        'corr': best_corr
+                    })
+
+        results_df = pd.DataFrame(results)
+        results_df = results_df.sort_values(by=["imu", "corr"], ascending=[True, False]).reset_index(drop=True)
+        results_df.to_csv(f'{self.path_experiment}/cross_correlation_exploratory_results.csv', index=False)
 
         return results_df

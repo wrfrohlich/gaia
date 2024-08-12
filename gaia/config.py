@@ -30,7 +30,10 @@ class Config():
         self.body_parts = {
             "imu": [
                 'acc_x', 'acc_y', 'acc_z', 'gyro_x',
-                'gyro_y', 'gyro_z', 'roll', 'pitch', 'yaw'],
+                'gyro_y', 'gyro_z', 'roll', 'pitch', 'yaw',
+                'vel_x', 'vel_y', 'vel_z',
+                'ang_acc_gyro_x', 'ang_acc_gyro_y', 'ang_acc_gyro_z',
+                'mag_acc', 'mag_gyro'],
 
             "head_neck": ["c7_x", "c7_y", "c7_z"],
             
