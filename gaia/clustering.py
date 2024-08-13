@@ -1,99 +1,94 @@
-
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
+import numpy as np
+import pandas as pd
+from os import path, makedirs
 from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score
-from keras.models import Model # type: ignore
-from keras.layers import Dense, Conv1D, Flatten, Reshape, Input, Dropout # type: ignore
+from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
-import seaborn as sns
-from scipy.stats import f_oneway
+from .config import Config
 
-def feature_extraction(self, merged_data, wearable_data):
+class Clustering:
     """
-    Extracts features from wearable and camera data, applies K-Means clustering, and performs analysis and visualization.
-
-    Parameters
-    ----------
-    merged_data : pd.DataFrame
-        A DataFrame containing the merged wearable and camera data, with columns for wearable sensor readings 
-        and camera points.
-    wearable_data : pd.DataFrame
-        A DataFrame containing the wearable data with timestamps and other relevant columns for ANOVA analysis.
-
-    Returns
-    -------
-    None
-        This method does not return any values. It performs feature extraction, clustering, and generates plots.
+    A class for computing and visualizing various correlation metrics between data series.
     """
-    
-    # Normalize wearable and camera data
-    scaler = StandardScaler()
-    wearable_scaled = scaler.fit_transform(merged_data[['acc_x', 'acc_y', 'acc_z', 'gyro_x', 'gyro_y', 'gyro_z']])
-    camera_scaled = scaler.fit_transform(merged_data.drop(columns=['time']))
 
-    # Prepare data for the autoencoder
-    X_wearable = wearable_scaled.reshape((wearable_scaled.shape[0], wearable_scaled.shape[1], 1))
+    def __init__(self, name):
+        """
+        Initializes the Correlation class with Config and sets up directories for saving plots.
+        """
+        config = Config()
+        self.path_experiment = config.figures
+        self.points = config.body_parts
 
-    # Build and compile the autoencoder model
-    input_layer = Input(shape=(X_wearable.shape[1], 1))
-    x = Conv1D(64, kernel_size=3, activation='relu', padding='same')(input_layer)
-    x = Dropout(0.2)(x)
-    x = Flatten()(x)
-    encoded = Dense(50, activation='relu')(x)
-    decoded = Dense(X_wearable.shape[1], activation='relu')(encoded)
-    decoded = Reshape((X_wearable.shape[1], 1))(decoded)
+        if name:
+            self.path_experiment = path.join(self.path_experiment, name)
+            if not path.exists(self.path_experiment):
+                makedirs(self.path_experiment)
 
-    autoencoder = Model(input_layer, decoded)
-    encoder = Model(input_layer, encoded)
-    autoencoder.compile(optimizer='adam', loss='mse')
+    def correlate_clusters_with_kinematics(self, data_kinematics, clusters):
+        # Adiciona os clusters aos dados cinemáticos correspondentes
+        data_kinematics['cluster'] = clusters
 
-    # Train the autoencoder with wearable data
-    autoencoder.fit(X_wearable, X_wearable, epochs=20, verbose=1)
+        # Calcula a média e a variância para as variáveis cinemáticas em cada cluster
+        grouped_kinematics = data_kinematics.groupby('cluster').mean()
+        grouped_kinematics_std = data_kinematics.groupby('cluster').std()
 
-    # Extract features using the encoder
-    wearable_features = encoder.predict(X_wearable)
+        print("Médias das variáveis cinemáticas por cluster:")
+        print(grouped_kinematics)
 
-    # Apply PCA to reduce dimensionality of camera data
-    pca = PCA(n_components=10)
-    camera_features = pca.fit_transform(camera_scaled)
+        print("\nDesvios padrão das variáveis cinemáticas por cluster:")
+        print(grouped_kinematics_std)
 
-    # Combine extracted features
-    combined_features = np.concatenate((wearable_features, camera_features), axis=1)
+        # Comparação dos clusters com as variáveis cinemáticas
+        for var in data_kinematics.columns[:-1]:  # Excluindo a coluna 'cluster'
+            plt.figure()
+            plt.title(f'Variável Cinemática: {var}')
+            for cluster in sorted(data_kinematics['cluster'].unique()):
+                plt.hist(data_kinematics[data_kinematics['cluster'] == cluster][var], 
+                        alpha=0.5, label=f'Cluster {cluster}')
+            plt.legend()
+            plt.xlabel(var)
+            plt.ylabel('Frequência')
+            plt.savefig(f'{self.path_experiment}/clusters_bluba_{var}.png')
+            plt.clf()
 
-    # Apply K-Means clustering
-    kmeans = KMeans(n_clusters=3)
-    clusters = kmeans.fit_predict(combined_features)
+    def run_kmeans(self, data):
+        for item in self.points:
+            imu_data = self.points[item]
 
-    # Add cluster labels to the original data
-    merged_data['cluster'] = clusters
+            # Combine todas as colunas IMU relevantes em um único DataFrame
+            combined_imu_data = data[imu_data]
 
-    # Visualize clusters in the original feature space
-    sns.scatterplot(x='acc_x', y='r_should.X', hue='cluster', data=merged_data, palette='viridis')
-    plt.title('Clusters between Wearable and Kinematic Data')
-    plt.savefig('Clusters.png')
-    plt.clf()
+            # Verifique se os dados combinados têm mais de uma coluna
+            if combined_imu_data.shape[1] > 1:
+                # Aplicar PCA para reduzir a dimensionalidade
+                pca = PCA(n_components=3)
+                imu_pca = pca.fit_transform(combined_imu_data)
 
-    # Calculate and print the silhouette coefficient
-    silhouette_avg = silhouette_score(combined_features, clusters)
-    print(f'Silhouette Coefficient: {silhouette_avg}')
+                # Aplicar K-Means
+                kmeans = KMeans(n_clusters=4, random_state=42)
+                clusters = kmeans.fit_predict(imu_pca)
 
-    # Perform ANOVA analysis
-    anova_results = {}
-    for col in wearable_data.columns:
-        if col != 'timestamp':
-            groups = [merged_data[merged_data['cluster'] == i][col] for i in range(3)]
-            anova_results[col] = f_oneway(*groups)
-            print(f'{col} - ANOVA: F-value={anova_results[col].statistic}, p-value={anova_results[col].pvalue}')
+                print(clusters)
 
-    # Visualization with PCA (2D projection for clustering)
-    pca_2d = PCA(n_components=2)
-    combined_2d = pca_2d.fit_transform(combined_features)
+                # Visualizar os clusters (após PCA)
+                plt.scatter(imu_pca[:, 0], imu_pca[:, 1], c=clusters, cmap='viridis')
+                plt.title(f"Clusters dos dados {item} após PCA")
+                plt.xlabel("Componente Principal 1")
+                plt.ylabel("Componente Principal 2")
+                plt.savefig(f'{self.path_experiment}/clusters_combined_{item}.png')
+                plt.clf()
 
-    plt.figure(figsize=(10, 6))
-    sns.scatterplot(x=combined_2d[:, 0], y=combined_2d[:, 1], hue=clusters, palette='viridis')
-    plt.title('Clusters in 2D using PCA')
-    plt.xlabel('Principal Component 1')
-    plt.ylabel('Principal Component 2')
-    plt.savefig('Clusters_PCA.png')
-    plt.clf()
+
+                from sklearn.metrics import silhouette_score
+
+                # Calcular a Silhouette Score
+                silhouette_avg = silhouette_score(imu_pca, clusters)
+                print(f'Silhouette Score: {silhouette_avg:.2f}')
+            else:
+                print("Os dados IMU combinados têm apenas uma coluna. PCA não é aplicável.")
+
+            if item == "imu":
+                self.correlate_clusters_with_kinematics(data, clusters)
+
+
+

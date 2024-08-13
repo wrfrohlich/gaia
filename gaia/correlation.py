@@ -1,11 +1,13 @@
 import os
 import numpy as np
 import pandas as pd
+import pingouin as pg
 import seaborn as sns
 import matplotlib.pyplot as plt
 from os import path
 from scipy.signal import correlate
 from scipy.stats import pearsonr, spearmanr, kendalltau
+import statsmodels.stats.inter_rater as irr
 from .config import Config
 
 class Correlation:
@@ -143,13 +145,23 @@ class Correlation:
                 if report[idx][imu]:
                     self.print_cross_corr(data, imu, report[idx][imu])
 
-    def print_cross_corr(self, df, value_a, value_b):
+    def print_cross_corr(self, df, value_a, value_b, max_lag=100):
         """
-        Computes and plots cross-correlation between two data series.
+        Computes and plots cross-correlation between two data series with more control.
         """
-        plt.xcorr(df[value_a], df[value_b], maxlags=100, usevlines=True, normed=True, lw=2)
+        corr, lags = self.calculate_cross_correlation(df[value_a], df[value_b])
+        
+        # Limitar o número de lags para os valores especificados
+        limited_lags = (lags >= -max_lag) & (lags <= max_lag)
+        lags = lags[limited_lags]
+        corr = corr[limited_lags]
+        plt.figure(figsize=(10, 6))
+        plt.plot(lags, corr, marker='o')
+        plt.title(f'Cross-Correlation: {value_a} vs {value_b}')
+        plt.xlabel('Lags')
+        plt.ylabel('Correlation')
         plt.grid(True)
-        plt.title(f'cross_correlation {value_a} vs {value_b}')
+        plt.axhline(0, color='black', lw=1)
         plt.savefig(f'{self.path_experiment}/cross_corr_{value_a}_vs_{value_b}.png')
         plt.clf()
 
@@ -231,3 +243,38 @@ class Correlation:
         results_df.to_csv(f'{self.path_experiment}/cross_correlation_exploratory_results.csv', index=False)
 
         return results_df
+
+    def intraclass_correlation_exploratory(self, df):
+        """
+        Analyzes cross-correlation for all pairs of series, finds the best lag for each pair, and saves the results in a CSV.
+        """
+
+        # Inicializar uma lista para armazenar os dados transformados
+        data = []
+
+        # Preencher os dados do IMU
+        imu_columns = [
+            'acc_x'
+        ]
+
+        for col in imu_columns:
+            print(len(df[col]))
+            for index, value in enumerate(df[col]):
+                data.append([col, "IMU", value])
+
+        # Preencher os dados cinemáticos (Kinematics)
+        kinematic_columns = [
+            "c7_x"
+        ]
+
+        for col in kinematic_columns:
+            print(len(df[col]))
+            for index, value in enumerate(df[col]):
+                data.append([col, "Kinematic", value])
+
+        df_combined = pd.DataFrame(data, columns=["body_parts", "type", "value"])
+        df_combined['value'].fillna(df_combined['value'].mean(), inplace=True)
+
+
+        icc_result = pg.intraclass_corr(data=df_combined, targets='body_parts', raters='type', ratings='value', nan_policy='omit')
+        print(icc_result)
