@@ -4,12 +4,20 @@ from os import path, makedirs
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
-from .config import Config
+import seaborn as sns
+import logging
+from gaia.config import Config
+from sklearn.metrics import silhouette_score
 
 class Clustering:
     """
     A class for computing and visualizing clustering results from IMU data,
     and correlating these clusters with kinematic data.
+    
+    Example:
+        clustering = Clustering('experiment_name')
+        clusters = clustering.run_kmeans(data)
+        clustering.correlate_clusters_with_kinematics(kinematic_data, clusters)
     """
 
     def __init__(self, name):
@@ -29,6 +37,8 @@ class Clustering:
             self.path_experiment = path.join(self.path_experiment, name)
             if not path.exists(self.path_experiment):
                 makedirs(self.path_experiment)
+        
+        logging.basicConfig(level=logging.INFO)
 
     def correlate_clusters_with_kinematics(self, data_kinematics, clusters):
         """
@@ -37,84 +47,59 @@ class Clustering:
         Parameters:
         - data_kinematics: DataFrame, the kinematic data to be analyzed.
         - clusters: array-like, the cluster labels for each observation.
-
-        This method adds the cluster labels to the kinematic data,
-        computes the mean and standard deviation of the kinematic variables
-        for each cluster, and visualizes the distribution of each kinematic
-        variable across clusters.
         """
-        # Add clusters to the corresponding kinematic data
         data_kinematics['cluster'] = clusters
 
-        # Calculate mean and standard deviation for kinematic variables in each cluster
-        grouped_kinematics = data_kinematics.groupby('cluster').mean()
-        grouped_kinematics_std = data_kinematics.groupby('cluster').std()
+        grouped_kinematics = data_kinematics.groupby('cluster').agg(['mean', 'std'])
 
-        print("Means of kinematic variables by cluster:")
-        print(grouped_kinematics)
+        logging.info("Means and standard deviations of kinematic variables by cluster:")
+        logging.info(grouped_kinematics)
 
-        print("\nStandard deviations of kinematic variables by cluster:")
-        print(grouped_kinematics_std)
-
-        # Compare clusters with kinematic variables
         for var in data_kinematics.columns[:-1]:  # Exclude the 'cluster' column
             plt.figure()
+            sns.histplot(data=data_kinematics, x=var, hue='cluster', element="step", stat="density", common_norm=False)
             plt.title(f'Kinematic Variable: {var}')
-            for cluster in sorted(data_kinematics['cluster'].unique()):
-                plt.hist(data_kinematics[data_kinematics['cluster'] == cluster][var], 
-                         alpha=0.5, label=f'Cluster {cluster}')
-            plt.legend()
             plt.xlabel(var)
-            plt.ylabel('Frequency')
-            plt.savefig(f'{self.path_experiment}/clusters_bluba_{var}.png')
+            plt.ylabel('Density')
+            plt.legend(title='Cluster')
+            plt.savefig(f'{self.path_experiment}/clusters_{var}.png')
             plt.clf()
 
-    def run_kmeans(self, data):
+    def run_kmeans(self, data, n_clusters=4, pca_components=3):
         """
         Runs the K-Means clustering algorithm on IMU data,
         reduces dimensionality using PCA, and visualizes the clusters.
 
         Parameters:
         - data: DataFrame, the input data containing IMU measurements.
-
-        This method iterates over the body parts defined in the configuration,
-        performs PCA on the IMU data, applies K-Means clustering, and saves
-        the cluster visualizations. It also calculates the Silhouette Score for
-        each clustering result.
+        - n_clusters: int, the number of clusters to form.
+        - pca_components: int, number of principal components to keep in PCA.
         """
-        for item in self.points:
-            imu_data = self.points[item]
-
-            # Combine all relevant IMU columns into a single DataFrame
+        for item, imu_data in self.points.items():
             combined_imu_data = data[imu_data]
 
-            # Check if combined data has more than one column
             if combined_imu_data.shape[1] > 1:
-                # Apply PCA to reduce dimensionality
-                pca = PCA(n_components=3)
-                imu_pca = pca.fit_transform(combined_imu_data)
+                try:
+                    pca = PCA(n_components=pca_components)
+                    imu_pca = pca.fit_transform(combined_imu_data)
 
-                # Apply K-Means clustering
-                kmeans = KMeans(n_clusters=4, random_state=42)
-                clusters = kmeans.fit_predict(imu_pca)
+                    kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+                    clusters = kmeans.fit_predict(imu_pca)
 
-                print(clusters)
+                    logging.info(f'Clusters for {item}: {clusters}')
 
-                # Visualize clusters (after PCA)
-                plt.scatter(imu_pca[:, 0], imu_pca[:, 1], c=clusters, cmap='viridis')
-                plt.title(f"Clusters of {item} data after PCA")
-                plt.xlabel("Principal Component 1")
-                plt.ylabel("Principal Component 2")
-                plt.savefig(f'{self.path_experiment}/clusters_combined_{item}.png')
-                plt.clf()
+                    plt.figure()
+                    sns.scatterplot(x=imu_pca[:, 0], y=imu_pca[:, 1], hue=clusters, palette='viridis')
+                    plt.title(f"Clusters of {item} data after PCA")
+                    plt.xlabel("Principal Component 1")
+                    plt.ylabel("Principal Component 2")
+                    plt.savefig(f'{self.path_experiment}/clusters_{item}.png')
+                    plt.clf()
 
-                # Calculate the Silhouette Score
-                from sklearn.metrics import silhouette_score
-                silhouette_avg = silhouette_score(imu_pca, clusters)
-                print(f'Silhouette Score for {item}: {silhouette_avg:.2f}')
+                    silhouette_avg = silhouette_score(imu_pca, clusters)
+                    logging.info(f'Silhouette Score for {item}: {silhouette_avg:.2f}')
+
+                except Exception as e:
+                    logging.error(f"Error in clustering {item}: {e}")
             else:
-                print("Combined IMU data has only one column. PCA is not applicable.")
-
-            # Uncomment the line below to correlate clusters with kinematics
-            # if item == "imu":
-            #     self.correlate_clusters_with_kinematics(data, clusters)
+                logging.warning(f"Combined IMU data for {item} has only one column. PCA is not applicable.")

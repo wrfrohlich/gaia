@@ -8,7 +8,7 @@ from os import path
 from scipy.signal import correlate
 from scipy.stats import pearsonr, spearmanr, kendalltau
 import statsmodels.stats.inter_rater as irr
-from .config import Config
+from gaia.config import Config
 
 class Correlation:
     """

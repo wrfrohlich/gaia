@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 
-from .config import Config
-from .filtering import Filtering
+from gaia.config import Config
+from gaia.filtering import Filtering
 
 from pandas import DataFrame, merge_asof
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
