@@ -1,4 +1,5 @@
 
+import csv
 import logging
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -14,44 +15,25 @@ from gaia.config import Config
 
 
 class Clustering:
-    """
-    A class for computing and visualizing clustering results from IMU data,
-    and correlating these clusters with kinematic data.
-    
-    Example:
-        clustering = Clustering('experiment_name')
-        clusters = clustering.run_kmeans(data)
-        clustering.correlate_clusters_with_kinematics(kinematic_data, clusters)
-    """
-
     def __init__(self, name):
-        """
-        Initializes the Clustering class with the configuration settings,
-        and sets up directories for saving plots.
-
-        Parameters:
-        - name: str, the name of the experiment for saving figures.
-        """
         config = Config()
-        self.path_experiment = config.figures
+        self.path_experiment = config.experiments
         self.points = config.body_parts
 
-        # Set up a directory for the current experiment's plots
         if name:
             self.path_experiment = path.join(self.path_experiment, name)
             if not path.exists(self.path_experiment):
                 makedirs(self.path_experiment)
         
         logging.basicConfig(level=logging.INFO)
+        
+        # Initialize CSV file for metrics
+        self.csv_file = path.join(self.path_experiment, "cluster_metrics.csv")
+        with open(self.csv_file, mode='w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(["Item", "Method", "Num Clusters", "Silhouette Score"])
 
     def correlate_clusters_with_kinematics(self, data_kinematics, clusters):
-        """
-        Correlates the clusters obtained from IMU data with kinematic data.
-
-        Parameters:
-        - data_kinematics: DataFrame, the kinematic data to be analyzed.
-        - clusters: array-like, the cluster labels for each observation.
-        """
         data_kinematics['cluster'] = clusters
 
         grouped_kinematics = data_kinematics.groupby('cluster').agg(['mean', 'std'])
@@ -59,7 +41,7 @@ class Clustering:
         logging.info("Means and standard deviations of kinematic variables by cluster:")
         logging.info(grouped_kinematics)
 
-        for var in data_kinematics.columns[:-1]:  # Exclude the 'cluster' column
+        for var in data_kinematics.columns[:-1]:
             plt.figure()
             sns.histplot(data=data_kinematics, x=var, hue='cluster', element="step", stat="density", common_norm=False)
             plt.title(f'Kinematic Variable: {var}')
@@ -70,16 +52,6 @@ class Clustering:
             plt.clf()
 
     def run_clustering_kmeans(self, data, method="pca", n_clusters=3, n_components=2):
-        """
-        Runs the K-Means clustering algorithm on IMU data,
-        adjusts for lag, reduces dimensionality using PCA,
-        and visualizes the clusters.
-
-        Parameters:
-        - data_file: str, path to the CSV file containing the variables, lags, and correlations.
-        - n_clusters: int, the number of clusters to form.
-        - n_components: int, number of principal components to keep.
-        """
         correlation_data = pd.read_csv(f'{self.path_experiment}/cross_correlation_results.csv')
 
         for _, row in correlation_data.iterrows():
@@ -89,7 +61,6 @@ class Clustering:
 
             item = f"{var1}_{var2}_{method}"
 
-            # Aplica a defasagem (lag) nos dados
             lag = int(lag)
             shifted_data = data[[var1, var2]].copy()
 
@@ -116,7 +87,7 @@ class Clustering:
 
                 plt.figure()
                 sns.scatterplot(x=imu_pca[:, 0], y=imu_pca[:, 1], hue=clusters, palette='viridis')
-                plt.title(f"Clusters of {item} data after PCA")
+                plt.title(f"Clusters of {item} data after {method.upper()}")
                 plt.xlabel("Principal Component 1")
                 plt.ylabel("Principal Component 2")
                 plt.savefig(f'{self.path_experiment}/clusters_{item}.png')
@@ -124,5 +95,7 @@ class Clustering:
 
                 silhouette_avg = silhouette_score(imu_pca, clusters)
                 logging.info(f'Silhouette Score for {item}: {silhouette_avg:.2f}')
-            else:
-                logging.warning(f"Dados insuficientes após aplicação da defasagem para {item}.")
+
+                with open(self.csv_file, mode='a', newline='') as file:
+                    writer = csv.writer(file)
+                    writer.writerow([item, method, n_clusters, silhouette_avg])
