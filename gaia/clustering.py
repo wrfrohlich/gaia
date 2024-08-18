@@ -9,7 +9,7 @@ from os import path, makedirs
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
-from sklearn.metrics import silhouette_score
+from sklearn.metrics import silhouette_score, calinski_harabasz_score, davies_bouldin_score
 
 from gaia.config import Config
 
@@ -26,18 +26,10 @@ class Clustering:
                 makedirs(self.path_experiment)
         
         logging.basicConfig(level=logging.INFO)
-        
-        # Initialize CSV file for metrics
-        self.csv_file = path.join(self.path_experiment, "cluster_metrics.csv")
-        with open(self.csv_file, mode='w', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow(["Item", "Method", "Num Clusters", "Silhouette Score"])
 
     def correlate_clusters_with_kinematics(self, data_kinematics, clusters):
         data_kinematics['cluster'] = clusters
-
         grouped_kinematics = data_kinematics.groupby('cluster').agg(['mean', 'std'])
-
         logging.info("Means and standard deviations of kinematic variables by cluster:")
         logging.info(grouped_kinematics)
 
@@ -54,11 +46,12 @@ class Clustering:
     def run_clustering_kmeans(self, data, method="pca", n_clusters=3, n_components=2):
         correlation_data = pd.read_csv(f'{self.path_experiment}/cross_correlation_results.csv')
 
+        metrics_list = []
+
         for _, row in correlation_data.iterrows():
             var1 = row.get("imu")
             var2 = row.get("kinematic")
             lag = row.get("lag")
-
             item = f"{var1}_{var2}_{method}"
 
             lag = int(lag)
@@ -87,15 +80,26 @@ class Clustering:
 
                 plt.figure()
                 sns.scatterplot(x=imu_pca[:, 0], y=imu_pca[:, 1], hue=clusters, palette='viridis')
-                plt.title(f"Clusters of {item} data after {method.upper()}")
+                plt.title(f"Clusters of {item} data after PCA")
                 plt.xlabel("Principal Component 1")
                 plt.ylabel("Principal Component 2")
                 plt.savefig(f'{self.path_experiment}/clusters_{item}.png')
                 plt.clf()
 
                 silhouette_avg = silhouette_score(imu_pca, clusters)
-                logging.info(f'Silhouette Score for {item}: {silhouette_avg:.2f}')
+                calinski_harabasz = calinski_harabasz_score(imu_pca, clusters)
+                davies_bouldin = davies_bouldin_score(imu_pca, clusters)
 
-                with open(self.csv_file, mode='a', newline='') as file:
-                    writer = csv.writer(file)
-                    writer.writerow([item, method, n_clusters, silhouette_avg])
+                logging.info(f'Silhouette Score for {item}: {silhouette_avg:.2f}')
+                logging.info(f'Calinski-Harabasz Score for {item}: {calinski_harabasz:.2f}')
+                logging.info(f'Davies-Bouldin Index for {item}: {davies_bouldin:.2f}')
+
+                metrics_list.append({
+                    'Variable Pair': item,
+                    'Silhouette Score': silhouette_avg,
+                    'Calinski-Harabasz Score': calinski_harabasz,
+                    'Davies-Bouldin Index': davies_bouldin
+                })
+
+        metrics_df = pd.DataFrame(metrics_list)
+        metrics_df.to_csv(f'{self.path_experiment}/clustering_metrics.csv', index=False)
