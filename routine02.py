@@ -125,14 +125,12 @@ class Routine():
         """
         name = "experiment16"
         preproc = Preprocessing()
-        merged_data = preproc.run(self.df1, self.df2, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="low-pass", normalization="standard")
-        merged_data = preproc.run(merged_data, self.df3, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="low-pass", normalization="standard")
+        merged_data = preproc.run(self.df1, self.df2, self.df3, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="low-pass", normalization="minmax")
         corr = Correlation(name=name)
         corr.get_higher_corr(merged_data, level="0.4")
         corr_data = corr.analyze_correlation()
         corr.cross_correlation_analysis(merged_data, corr_data)
         corr.cross_correlation_exploratory(merged_data, criterion=0.4, best=True)
-        corr.get_missing_kinematic(merged_data)
 
     def run_experiment07(self):
         """
@@ -157,16 +155,13 @@ class Routine():
 
         self.df3['mag_acc'] = FeatureExtraction.calculate_magnitude(self.df3['acc_x'], self.df3['acc_y'], self.df3['acc_z'])
         self.df3['mag_gyro'] = FeatureExtraction.calculate_magnitude(self.df3['gyro_x'], self.df3['gyro_y'], self.df3['gyro_z'])
-        merged_data = preproc.run(self.df1, self.df2, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="low-pass", normalization="standard")
-        merged_data = preproc.run(merged_data, self.df3, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="low-pass", normalization="standard")
-
+        merged_data = preproc.run(self.df1, self.df2, self.df3, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="low-pass", normalization="minmax")
 
         corr = Correlation(name=name)
         corr.get_higher_corr(merged_data, level=0.4)
         corr_data = corr.analyze_correlation()
         corr.cross_correlation_analysis(merged_data, corr_data)
         corr.cross_correlation_exploratory(merged_data, criterion=0.4, best=True)
-        corr.get_missing_kinematic(merged_data)
 
 
     def run_experiment08(self):
@@ -192,15 +187,13 @@ class Routine():
 
         self.df3['mag_acc'] = FeatureExtraction.calculate_magnitude(self.df3['acc_x'], self.df3['acc_y'], self.df3['acc_z'])
         self.df3['mag_gyro'] = FeatureExtraction.calculate_magnitude(self.df3['gyro_x'], self.df3['gyro_y'], self.df3['gyro_z'])
-        merged_data = preproc.run(self.df1, self.df2, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="low-pass", normalization="standard")
-        merged_data = preproc.run(merged_data, self.df3, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="low-pass", normalization="standard")
+        merged_data = preproc.run(self.df1, self.df2, self.df3, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="low-pass", normalization="minmax")
 
         corr = Correlation(name=name)
         corr.get_higher_corr(merged_data, level=0.7)
         corr_data = corr.analyze_correlation()
         corr.cross_correlation_analysis(merged_data, corr_data)
         corr.cross_correlation_exploratory(merged_data, criterion=0.7, best=True)
-        corr.get_missing_kinematic(merged_data)
 
     def run_experiment09(self):
         """
@@ -230,8 +223,8 @@ class Routine():
         print(merged_data)
         corr = Correlation(name=name)
         corr.get_higher_corr(merged_data, level=0.5)
-        #corr_data = corr.analyze_correlation()
-        #corr.cross_correlation_analysis(merged_data, corr_data)
+        corr_data = corr.analyze_correlation()
+        corr.cross_correlation_analysis(merged_data, corr_data)
         corr.cross_correlation_exploratory(merged_data, criterion=0.5, best=True)
 
 
@@ -245,4 +238,4 @@ if __name__ == '__main__':
     # routine.run_experiment06()
     # routine.run_experiment07()
     # routine.run_experiment08()
-    routine.run_experiment09()
+    # routine.run_experiment09()
