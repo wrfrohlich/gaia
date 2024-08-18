@@ -20,7 +20,7 @@ class Correlation:
         Initializes the Correlation class with Config and sets up directories for saving plots.
         """
         config = Config()
-        self.path_experiment = config.figures
+        self.path_experiment = config.experiments
         self.points = config.body_parts
 
         if name:

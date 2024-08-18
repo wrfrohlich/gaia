@@ -11,7 +11,7 @@ class Config():
         self.gait_lab_force_file = path.join(self.data_path, "force_track_040102.emt")
         self.gwalk_file =  path.join(self.data_path, "gwalk_040102.txt")
 
-        self.figures = path.join(self.path_project_gaia_parent, "figures")
+        self.figures = path.join(self.path_project_gaia_parent, "experiments")
 
         self.scalars = {
             'roll', 'pitch', 'yaw'
