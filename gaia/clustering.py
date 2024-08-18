@@ -1,13 +1,17 @@
-import numpy as np
+
+import logging
+import matplotlib.pyplot as plt
 import pandas as pd
+import seaborn as sns
+
 from os import path, makedirs
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
-import matplotlib.pyplot as plt
-import seaborn as sns
-import logging
-from gaia.config import Config
+from sklearn.manifold import TSNE
 from sklearn.metrics import silhouette_score
+
+from gaia.config import Config
+
 
 class Clustering:
     """
@@ -65,41 +69,60 @@ class Clustering:
             plt.savefig(f'{self.path_experiment}/clusters_{var}.png')
             plt.clf()
 
-    def run_kmeans(self, data, n_clusters=4, pca_components=3):
+    def run_clustering_kmeans(self, data, method="pca", n_clusters=3, n_components=2):
         """
         Runs the K-Means clustering algorithm on IMU data,
-        reduces dimensionality using PCA, and visualizes the clusters.
+        adjusts for lag, reduces dimensionality using PCA,
+        and visualizes the clusters.
 
         Parameters:
-        - data: DataFrame, the input data containing IMU measurements.
+        - data_file: str, path to the CSV file containing the variables, lags, and correlations.
         - n_clusters: int, the number of clusters to form.
-        - pca_components: int, number of principal components to keep in PCA.
+        - n_components: int, number of principal components to keep.
         """
-        for item, imu_data in self.points.items():
-            combined_imu_data = data[imu_data]
+        correlation_data = pd.read_csv(f'{self.path_experiment}/cross_correlation_results.csv')
 
-            if combined_imu_data.shape[1] > 1:
-                try:
-                    pca = PCA(n_components=pca_components)
-                    imu_pca = pca.fit_transform(combined_imu_data)
+        for _, row in correlation_data.iterrows():
+            var1 = row.get("imu")
+            var2 = row.get("kinematic")
+            lag = row.get("lag")
 
-                    kmeans = KMeans(n_clusters=n_clusters, random_state=42)
-                    clusters = kmeans.fit_predict(imu_pca)
+            item = f"{var1}_{var2}_{method}"
 
-                    logging.info(f'Clusters for {item}: {clusters}')
+            # Aplica a defasagem (lag) nos dados
+            lag = int(lag)
+            shifted_data = data[[var1, var2]].copy()
 
-                    plt.figure()
-                    sns.scatterplot(x=imu_pca[:, 0], y=imu_pca[:, 1], hue=clusters, palette='viridis')
-                    plt.title(f"Clusters of {item} data after PCA")
-                    plt.xlabel("Principal Component 1")
-                    plt.ylabel("Principal Component 2")
-                    plt.savefig(f'{self.path_experiment}/clusters_{item}.png')
-                    plt.clf()
+            if "shift" in method:
+                if lag < 0:
+                    shifted_data[var2] = shifted_data[var2].shift(-lag)
+                else:
+                    shifted_data[var1] = shifted_data[var1].shift(lag)
+            
+            shifted_data = shifted_data.dropna()
 
-                    silhouette_avg = silhouette_score(imu_pca, clusters)
-                    logging.info(f'Silhouette Score for {item}: {silhouette_avg:.2f}')
+            if shifted_data.shape[0] > 1:
+                if "pca" in method:
+                    pca = PCA(n_components=n_components)
+                    imu_pca = pca.fit_transform(shifted_data)
+                elif "tsne" in method:
+                    tsne = TSNE(n_components=2, perplexity=30, n_iter=300, random_state=42)
+                    imu_pca = tsne.fit_transform(shifted_data)
 
-                except Exception as e:
-                    logging.error(f"Error in clustering {item}: {e}")
+                kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+                clusters = kmeans.fit_predict(imu_pca)
+
+                logging.info(f'Clusters for {item}: {clusters}')
+
+                plt.figure()
+                sns.scatterplot(x=imu_pca[:, 0], y=imu_pca[:, 1], hue=clusters, palette='viridis')
+                plt.title(f"Clusters of {item} data after PCA")
+                plt.xlabel("Principal Component 1")
+                plt.ylabel("Principal Component 2")
+                plt.savefig(f'{self.path_experiment}/clusters_{item}.png')
+                plt.clf()
+
+                silhouette_avg = silhouette_score(imu_pca, clusters)
+                logging.info(f'Silhouette Score for {item}: {silhouette_avg:.2f}')
             else:
-                logging.warning(f"Combined IMU data for {item} has only one column. PCA is not applicable.")
+                logging.warning(f"Dados insuficientes após aplicação da defasagem para {item}.")
