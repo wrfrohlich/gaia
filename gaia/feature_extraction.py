@@ -171,3 +171,47 @@ class FeatureExtraction:
             Série temporal da magnitude do vetor.
         """
         return np.sqrt(x**2 + y**2 + z**2)
+
+    @staticmethod
+    def calculate_jerk(acc_series, dt):
+        """
+        Calcula a magnitude de um vetor 3D a partir de suas componentes x, y e z.
+
+        Parameters
+        ----------
+        x : pd.Series
+            Componente x do vetor.
+        y : pd.Series
+            Componente y do vetor.
+        z : pd.Series
+            Componente z do vetor.
+
+        Returns
+        -------
+        pd.Series
+            Série temporal da magnitude do vetor.
+        """
+        jerk = np.diff(acc_series) / dt
+        return np.insert(jerk, 0, 0)
+
+    @staticmethod
+    def calculate_linear_position(vel_series, dt):
+        """
+        Calcula a magnitude de um vetor 3D a partir de suas componentes x, y e z.
+
+        Parameters
+        ----------
+        x : pd.Series
+            Componente x do vetor.
+        y : pd.Series
+            Componente y do vetor.
+        z : pd.Series
+            Componente z do vetor.
+
+        Returns
+        -------
+        pd.Series
+            Série temporal da magnitude do vetor.
+        """
+        pos = np.cumsum(vel_series[:-1] * dt)
+        return np.insert(pos, 0, 0)

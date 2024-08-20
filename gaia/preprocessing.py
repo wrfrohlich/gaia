@@ -95,8 +95,6 @@ class Preprocessing:
             The preprocessed data frame.
         """
         time = df["time"]
-        if time[0]:
-            time[0] = 0.00
 
         if remove_nan:
             df = self.remove_nan(df)
@@ -108,8 +106,6 @@ class Preprocessing:
             df = Filtering.butter_filter(df, type=filter_data)
         if normalization:
             df = self.normalize_data(df, scaler_type=normalization)
-
-        df["time"] = time
         return df
 
     def remove_nan(self, df, param='time'):

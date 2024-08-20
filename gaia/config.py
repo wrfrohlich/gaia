@@ -1,15 +1,15 @@
 from os import path
 
 class Config():
-    def __init__(self):
+    def __init__(self, participant="040102"):
         self.path_project_gaia = path.dirname(__file__)
         self.path_project_gaia_parent = path.dirname(self.path_project_gaia)
         self.path_parent = path.dirname(self.path_project_gaia_parent)
         self.data_path = path.join(self.path_parent, "bittencourt_data")
 
-        self.gait_lab_point_file = path.join(self.data_path, "point_track_040102.emt")
-        self.gait_lab_force_file = path.join(self.data_path, "force_track_040102.emt")
-        self.gwalk_file =  path.join(self.data_path, "gwalk_040102.txt")
+        self.gait_lab_point_file = path.join(self.data_path, f"point_track_{participant}.emt")
+        self.gait_lab_force_file = path.join(self.data_path, f"force_track_{participant}.emt")
+        self.gwalk_file =  path.join(self.data_path, f"gwalk_{participant}.txt")
 
         self.experiments = path.join(self.path_project_gaia_parent, "experiments")
 
@@ -33,7 +33,9 @@ class Config():
                 'gyro_y', 'gyro_z', 'roll', 'pitch', 'yaw',
                 'vel_x', 'vel_y', 'vel_z',
                 'ang_acc_gyro_x', 'ang_acc_gyro_y', 'ang_acc_gyro_z',
-                'mag_acc', 'mag_gyro'],
+                'mag_acc', 'mag_gyro',
+                'jerk_x', 'jerk_x', 'jerk_x',
+                'pos_x', 'pos_y', 'pos_z'],
 
             "head_neck": ["c7_x", "c7_y", "c7_z"],
             
