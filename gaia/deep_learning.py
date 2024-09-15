@@ -1,177 +1,42 @@
-import numpy as np
+import logging
 import pandas as pd
-from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.preprocessing import StandardScaler
-from tensorflow.keras.models import Sequential # type: ignore
-from tensorflow.keras.layers import LSTM, Dense, Dropout, Input # type: ignore
-from scikeras.wrappers import KerasRegressor
-import matplotlib.pyplot as plt
+from os import path, makedirs
+from sklearn.model_selection import train_test_split
 
-# List of important points in the gold standard data
-important_points = [
-    'sacrum_x', 'sacrum_y', 'sacrum_z',
-    'r_asis_x', 'r_asis_y', 'r_asis_z', 'l_asis_x', 'l_asis_y', 'l_asis_z',
-    'r_knee_1_x', 'r_knee_1_y', 'r_knee_1_z', 'l_knee_1_x', 'l_knee_1_y', 'l_knee_1_z',
-    'r_mall_x', 'r_mall_y', 'r_mall_z', 'l_mall_x', 'l_mall_y', 'l_mall_z',
-    'r_heel_x', 'r_heel_y', 'r_heel_z', 'l_heel_x', 'l_heel_y', 'l_heel_z',
-    'r_met_x', 'r_met_y', 'r_met_z', 'l_met_x', 'l_met_y', 'l_met_z'
-]
+from gaia.config import Config
+class DeepLearning:
+    def __init__(self, name):
+        config = Config()
+        self.path_experiment = path.join(config.experiments, name) if name else config.experiments
+        self.points = config.body_parts
 
-def build_model(lstm_units=64, dropout_rate=0.2, optimizer='adam'):
-    """
-    Build and compile a Keras LSTM model.
-    
-    Parameters:
-        lstm_units (int): Number of units in LSTM layers.
-        dropout_rate (float): Dropout rate for Dropout layers.
-        optimizer (str): Optimizer for model compilation.
-    
-    Returns:
-        model: Compiled Keras model.
-    """
-    model = Sequential()
-    # Input Layer
-    model.add(Input(shape=(1, 9)))
-    model.add(LSTM(lstm_units, return_sequences=True))
-    model.add(Dropout(dropout_rate))
-    model.add(LSTM(lstm_units, return_sequences=False))
-    model.add(Dropout(dropout_rate))
-    model.add(Dense(len(important_points)))
-    model.compile(optimizer=optimizer, loss='mse')
-    return model
+        # Create experiment directory if it doesn't exist
+        if not path.exists(self.path_experiment):
+            makedirs(self.path_experiment)
+        
+        logging.basicConfig(level=logging.INFO)
 
-def preprocess_data(df_imu, df_gold):
-    """
-    Preprocess the IMU and gold standard data.
-    
-    Parameters:
-        df_imu (DataFrame): IMU data.
-        df_gold (DataFrame): Gold standard data.
-    
-    Returns:
-        X_train, X_test, y_train, y_test: Training and test sets for model training.
-    """
-    # Synchronize data by time
-    df_combined = pd.merge_asof(df_imu, df_gold, on='time', direction='nearest')
+    def sep_data(self):
+        correlation_report = pd.read_csv(f'{self.path_experiment}/cross_correlation_report.csv', sep=";")
+        correlation_data = pd.read_csv(f'{self.path_experiment}/cross_correlation_results.csv')
+        data = {}
 
-    # Separate inputs (IMU) and outputs (gold standard)
-    X = df_combined[['acc_x', 'acc_y', 'acc_z', 'gyro_x', 'gyro_y', 'gyro_z', 'roll', 'pitch', 'yaw']]
-    y = df_combined[important_points]
+        for _, row in correlation_report.iterrows():
+            cleaned_list = [col for col in row if pd.notnull(col)]
+            data[cleaned_list[0]] = {}
+            for imu in cleaned_list[1:]:
+                lag = correlation_data[(correlation_data["kinematic"] == cleaned_list[0]) & (correlation_data["imu"] == imu)].lag.item()
+                data[cleaned_list[0]][imu] = lag
 
-    # Normalize data
-    scaler_X = StandardScaler()
-    scaler_y = StandardScaler()
+        return data
 
-    X_scaled = scaler_X.fit_transform(X)
-    y_scaled = scaler_y.fit_transform(y)
+    def prep_data(self, item, sep_data, data):
+        x = data[sep_data[item].keys()].copy()
+        y = data[item].copy()
+        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
+        return x_train, x_test, y_train, y_test
 
-    # Split data into training and test sets
-    X_train, X_test, y_train, y_test = train_test_split(X_scaled, y_scaled, test_size=0.2, random_state=42)
+    def run(self, sep_data, data):
+        for item in sep_data:
+            x_train, x_test, y_train, y_test = self.prep_data(item, sep_data, data)
 
-    # Reshape for LSTM input [samples, time steps, features]
-    X_train = X_train.reshape((X_train.shape[0], 1, X_train.shape[1]))
-    X_test = X_test.reshape((X_test.shape[0], 1, X_test.shape[1]))
-
-    return X_train, X_test, y_train, y_test, scaler_y
-
-def perform_grid_search(X_train, y_train):
-    """
-    Perform Grid Search to find the best hyperparameters.
-    
-    Parameters:
-        X_train (ndarray): Training input data.
-        y_train (ndarray): Training output data.
-    
-    Returns:
-        best_model: Trained Keras model with the best hyperparameters.
-        best_params (dict): Best hyperparameters found by Grid Search.
-    """
-    # Create KerasRegressor model
-    model = KerasRegressor(model=build_model, verbose=0)
-
-    # Define parameter grid
-    param_grid = {
-        'model__lstm_units': [50, 64, 100],
-        'model__dropout_rate': [0.2, 0.3],
-        'model__optimizer': ['adam', 'rmsprop'],
-        'epochs': [50, 100],
-        'batch_size': [32, 64]
-    }
-
-    grid = GridSearchCV(estimator=model, param_grid=param_grid, n_jobs=-1, cv=3)
-    grid_result = grid.fit(X_train, y_train)
-
-    best_params = grid_result.best_params_
-    print(f"Best parameters: {best_params}")
-
-    return grid_result.best_estimator_, best_params
-
-def train_and_evaluate_model(X_train, y_train, X_test, y_test, best_params, scaler_y):
-    """
-    Train and evaluate the Keras model with the best parameters.
-    
-    Parameters:
-        X_train (ndarray): Training input data.
-        y_train (ndarray): Training output data.
-        X_test (ndarray): Test input data.
-        y_test (ndarray): Test output data.
-        best_params (dict): Best hyperparameters for model training.
-        scaler_y (StandardScaler): Scaler used to inverse transform the outputs.
-    
-    Returns:
-        None
-    """
-    # Build and train the model with best parameters
-    best_model = build_model(
-        optimizer=best_params['model__optimizer'],
-        dropout_rate=best_params['model__dropout_rate'],
-        lstm_units=best_params['model__lstm_units']
-    )
-    history = best_model.fit(
-        X_train, y_train,
-        epochs=best_params['epochs'],
-        batch_size=best_params['batch_size'],
-        validation_data=(X_test, y_test)
-    )
-
-    # Evaluate the model
-    loss = best_model.evaluate(X_test, y_test)
-    print(f'Loss: {loss}')
-
-    # Make predictions
-    y_pred = best_model.predict(X_test)
-
-    # Inverse transform predictions and test data
-    y_pred_inverse = scaler_y.inverse_transform(y_pred)
-    y_test_inverse = scaler_y.inverse_transform(y_test)
-
-    # Compare predictions with gold standard
-    for i in range(len(y_test_inverse)):
-        print(f"Real: {y_test_inverse[i]}, Predicted: {y_pred_inverse[i]}")
-
-    # Plot predictions vs. gold standard
-    for i in range(len(important_points)):
-        plt.figure(figsize=(10, 5))
-        plt.plot(y_test_inverse[:, i], label='Real')
-        plt.plot(y_pred_inverse[:, i], label='Predicted')
-        plt.title(f'Comparison: {important_points[i]}')
-        plt.xlabel('Samples')
-        plt.ylabel('Value')
-        plt.legend()
-        plt.savefig(f'deep_learning_{important_points[i]}.png')
-        plt.close()
-
-def deep_learning(df_imu, df_gold):
-    """
-    Execute the deep learning pipeline for IMU data and gold standard data.
-    
-    Parameters:
-        df_imu (DataFrame): IMU data.
-        df_gold (DataFrame): Gold standard data.
-    
-    Returns:
-        None
-    """
-    X_train, X_test, y_train, y_test, scaler_y = preprocess_data(df_imu, df_gold)
-    best_model, best_params = perform_grid_search(X_train, y_train)
-    train_and_evaluate_model(X_train, y_train, X_test, y_test, best_params, scaler_y)

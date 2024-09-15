@@ -136,16 +136,16 @@ class Correlation:
         plt.savefig(f'{self.path_experiment}/trig_matrix_{name}.png')
         plt.clf()
 
-    def cross_correlation(self, data, report, print_fig=True):
+    def cross_correlation(self, data, report, print_fig=True, fontsize=12):
         """
         Computes and plots cross-correlation for all pairs of columns in the DataFrame, excluding the 'time' column.
         """
         for idx in report:
             for imu in report.index:
                 if report[idx][imu] and print_fig:
-                    self.print_cross_corr(data, imu, report[idx][imu])
+                    self.print_cross_corr(data, imu, report[idx][imu], fontsize=fontsize)
 
-    def print_cross_corr(self, df, value_a, value_b, max_lag=100):
+    def print_cross_corr(self, df, value_a, value_b, max_lag=100, fontsize=12):
         """
         Computes and plots cross-correlation between two data series with more control.
         """
@@ -155,11 +155,14 @@ class Correlation:
         limited_lags = (lags >= -max_lag) & (lags <= max_lag)
         lags = lags[limited_lags]
         corr = corr[limited_lags]
-        plt.figure(figsize=(10, 6))
+        plt.figure(figsize=(10, 7))
         plt.plot(lags, corr, marker='o')
-        plt.title(f'Cross-Correlation: {value_a} vs {value_b}')
-        plt.xlabel('Lags')
-        plt.ylabel('Correlation')
+        if fontsize == 12:
+            plt.title(f'Cross-Correlation: {value_a} vs {value_b}')
+        plt.xlabel('Lags', fontsize=fontsize)
+        plt.ylabel('Correlation', fontsize=fontsize)
+        plt.xticks(fontsize=fontsize)
+        plt.yticks(fontsize=fontsize)
         plt.grid(True)
         plt.axhline(0, color='black', lw=1)
         plt.savefig(f'{self.path_experiment}/cross_corr_{value_a}_vs_{value_b}.png')
@@ -194,7 +197,7 @@ class Correlation:
 
         return best_lag, best_corr
 
-    def cross_correlation_analysis(self, data, report, print_fig=True):
+    def cross_correlation_analysis(self, data, report, print_fig=True, fontsize=12):
         """
         Analyzes cross-correlation for all pairs of series, finds the best lag for each pair, and saves the results in a CSV.
         """
@@ -210,7 +213,7 @@ class Correlation:
                         'corr': best_corr
                     })
                     if print_fig:
-                        self.print_cross_corr(data, imu, report[idx][imu])
+                        self.print_cross_corr(data, imu, report[idx][imu], fontsize=fontsize)
         
         results_df = pd.DataFrame(results)
         results_df = results_df.sort_values(by=["imu", "corr"], ascending=[True, False]).reset_index(drop=True)
@@ -218,7 +221,7 @@ class Correlation:
 
         return results_df
 
-    def cross_correlation_exploratory(self, data, criterion=0.7, best=False, max_lag=100, print_fig=True):
+    def cross_correlation_exploratory(self, data, criterion=0.7, best=False, max_lag=100, print_fig=True, fontsize=12):
         """
         Analyzes cross-correlation for all pairs of series, finds the best lag for each pair, and saves the results in a CSV.
         """
@@ -231,7 +234,7 @@ class Correlation:
                 best_lag, best_corr = self.find_best_cross_correlation_lag(data[imu], data[kinematic])
                 if abs(best_corr) >= requirement and abs(best_lag) < max_lag:
                     if abs(best_corr) >= criterion and print_fig:
-                        self.print_cross_corr(data, imu, kinematic)
+                        self.print_cross_corr(data, imu, kinematic, fontsize=fontsize)
                     results.append({
                         'imu': imu,
                         'kinematic': kinematic,

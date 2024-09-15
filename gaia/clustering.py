@@ -24,13 +24,16 @@ class Clustering:
         
         logging.basicConfig(level=logging.INFO)
 
-    def _plot_cluster_results(self, data, clusters, title, filename):
+    def _plot_cluster_results(self, data, clusters, title, filename, fontsize=12):
         """Helper function to plot and save cluster results."""
-        plt.figure()
+        plt.figure(figsize=(11, 7))
         sns.scatterplot(x=data[:, 0], y=data[:, 1], hue=clusters, palette='viridis')
-        plt.title(title)
-        plt.xlabel("Principal Component 1")
-        plt.ylabel("Principal Component 2")
+        if fontsize == 12:
+            plt.title(title)
+        plt.xlabel("Principal Component 1", fontsize=fontsize)
+        plt.ylabel("Principal Component 2", fontsize=fontsize)
+        plt.xticks(fontsize=fontsize)
+        plt.yticks(fontsize=fontsize)
         plt.legend(title='Cluster')
         plt.savefig(filename)
         plt.clf()
@@ -68,7 +71,7 @@ class Clustering:
             plt.savefig(f'{self.path_experiment}/clusters_{var}.png')
             plt.clf()
 
-    def run_clustering_kmeans(self, data, method="pca", n_clusters=3, n_components=2):
+    def run_clustering_kmeans(self, data, method="pca", n_clusters=3, n_components=2, fontsize=12, print_fig=True):
         correlation_data = pd.read_csv(f'{self.path_experiment}/cross_correlation_results.csv')
         metrics_list = []
 
@@ -96,14 +99,15 @@ class Clustering:
                 logging.info(f'Clusters for {item}: {clusters}')
 
                 # Plotting results
-                self._plot_cluster_results(reduced_data, clusters, f"Clusters of {item} data after {method.upper()}", f'{self.path_experiment}/clusters_{item}.png')
+                if print_fig:
+                    self._plot_cluster_results(reduced_data, clusters, f"Clusters of {item} data after {method.upper()}", f'{self.path_experiment}/clusters_{item}.png', fontsize=fontsize)
 
                 # Calculating metrics
                 metrics_list.append(self._calculate_metrics(reduced_data, clusters, item))
 
         pd.DataFrame(metrics_list).to_csv(f'{self.path_experiment}/clustering_metrics.csv', index=False)
 
-    def run_clustering_kmeans_grouped(self, data, method="pca", n_clusters=3):
+    def run_clustering_kmeans_grouped(self, data, method="pca", n_clusters=3, fontsize=12, print_fig=True):
         correlation_report = pd.read_csv(f'{self.path_experiment}/cross_correlation_report.csv', sep=";")
         correlation_data = pd.read_csv(f'{self.path_experiment}/cross_correlation_results.csv')
         metrics_list = []
@@ -121,9 +125,9 @@ class Clustering:
 
             if shifted_data.shape[0] > 1:
                 # Dimensionality reduction
-                if method == "pca":
+                if "pca" in method:
                     reduced_data = PCA(n_components=len(cleaned_list)).fit_transform(shifted_data)
-                elif method == "tsne":
+                elif "tsne" in method:
                     reduced_data = TSNE(n_components=len(cleaned_list), perplexity=30, n_iter=300, random_state=42).fit_transform(shifted_data)
 
                 # Clustering
@@ -131,7 +135,8 @@ class Clustering:
                 logging.info(f'Clusters for {item}: {clusters}')
 
                 # Plotting results
-                self._plot_cluster_results(reduced_data, clusters, f"Clusters of {item} data after {method.upper()}", f'{self.path_experiment}/clusters_{item}.png')
+                if print_fig:
+                    self._plot_cluster_results(reduced_data, clusters, f"Clusters of {item} data after {method.upper()}", f'{self.path_experiment}/clusters_{item}.png', fontsize=fontsize)
 
                 # Calculating metrics
                 metrics_list.append(self._calculate_metrics(reduced_data, clusters, item))
