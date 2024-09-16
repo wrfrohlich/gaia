@@ -4,7 +4,7 @@ from gaia.correlation import Correlation
 from gaia.clustering import Clustering
 from gaia.preprocessing import Preprocessing
 from gaia.feature_extraction import FeatureExtraction
-from gaia.machine_learning import MachineLearningvi 
+from gaia.machine_learning import MachineLearning
 
 
 class Routine():
@@ -71,7 +71,7 @@ class Routine():
 
         ml = MachineLearning(name=name)
         sep_data = ml.sep_data()
-        ml.prep_data(sep_data, merged_data)
+        ml.run(sep_data, merged_data)
 
 
 if __name__ == '__main__':

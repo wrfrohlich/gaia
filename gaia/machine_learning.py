@@ -2,6 +2,9 @@ import logging
 import pandas as pd
 from os import path, makedirs
 from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 
 from gaia.config import Config
 
@@ -37,7 +40,29 @@ class MachineLearning:
         x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
         return x_train, x_test, y_train, y_test
 
-    def run(self, sep_data, data):
+    def run(self, sep_data, data, method="linear_regression"):
         for item in sep_data:
             x_train, x_test, y_train, y_test = self.prep_data(item, sep_data, data)
+            model = self.get_method(method=method)
+            model.fit(x_train, y_train)
+            y_pred = model.predict(x_test)
+
+            mse = mean_squared_error(y_test, y_pred)
+            r2 = r2_score(y_test, y_pred)
+            mae = mean_absolute_error(y_test, y_pred)
+            rae = sum(abs(y_test - y_pred)) / sum(abs(y_test - y_test.mean()))
+
+            print(f"{item} -> MSE: {mse} / R^2: {r2} - MAE: {mae} - RAE: {rae}")
+
+    def get_method(self, method="linear_regression"):
+        model = None
+        if method == "linear_regression":
+            model = LinearRegression()
+        elif method == "random_forest":
+            model = RandomForestRegressor(n_estimators=100, random_state=42)
+        elif method == "--":
+            pass
+        elif method == "---":
+            pass
+        return model
 
