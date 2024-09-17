@@ -20,8 +20,8 @@ class Config():
         self.vectors = {
             "acc", "gyro", "c7",
             "r_should", "l_should",
-            "sacrum s", "r_asis", "l_asis", "MIDASIS",
-            "r_knee 1", "l_knee 1",
+            "sacrum_s", "r_asis", "l_asis", "MIDASIS",
+            "r_knee_1", "l_knee_1",
             "r_mall", "l_mall",
             "r_heel", "l_heel", "r_met", "l_met",
             "PO", "SHO"

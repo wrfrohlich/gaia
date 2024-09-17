@@ -35,7 +35,7 @@ class Preprocessing:
         """
         self.filtering = Filtering()
 
-    def run(self, df1, df2, df3, remove_nan=True, convert_nan='mean',
+    def run(self, df1, df2, df3=None, remove_nan=True, convert_nan='mean',
             interpolate_method='linear', filter_data="low-pass",
             normalization='standard'):
         """
@@ -65,9 +65,10 @@ class Preprocessing:
         """
         df1 = self.preprocess(df1, remove_nan, convert_nan, interpolate_method, filter_data, normalization)
         df2 = self.preprocess(df2, remove_nan, convert_nan, interpolate_method, filter_data, normalization)
-        df3 = self.preprocess(df3, remove_nan, convert_nan, interpolate_method, filter_data, normalization)
         merged_data = self.merge(df1, df2)
-        merged_data = self.merge(merged_data, df3)
+        if type(df3) == DataFrame:
+            df3 = self.preprocess(df3, remove_nan, convert_nan, interpolate_method, filter_data, normalization)
+            merged_data = self.merge(merged_data, df3)
         return merged_data
 
     def preprocess(self, df, remove_nan=True, convert_nan='mean', interpolate_method='linear', filter_data="low-pass", normalization='standard'):

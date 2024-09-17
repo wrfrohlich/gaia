@@ -238,9 +238,9 @@ class Routine():
 
 if __name__ == '__main__':
     routine = Routine()
-    # routine.run_experiment01()
-    # routine.run_experiment02()
-    # routine.run_experiment03()
-    # routine.run_experiment04()
-    # routine.run_experiment05()
-    # routine.run_experiment06()
+    routine.run_experiment01()
+    routine.run_experiment02()
+    routine.run_experiment03()
+    routine.run_experiment04()
+    routine.run_experiment05()
+    routine.run_experiment06()

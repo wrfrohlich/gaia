@@ -38,7 +38,6 @@ class Correlation:
             raise ValueError(f"Level should be a number, but got {level}")
 
         correlations_list = []
-
         for points in self.points:
             if points == "imu":
                 continue
