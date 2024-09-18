@@ -43,13 +43,10 @@ class Correlation:
                 continue
             columns = list(self.points[points]) + self.points.get("imu", [])
             missing_cols = [col for col in columns if col not in data.columns]
-            if missing_cols:
-                continue
-            
+            columns = [item for item in columns if item not in missing_cols]
             df = data[columns]
             df = df.loc[:, ~df.columns.duplicated()]
             corr_matrix = df.corr(method=method)
-            
             for x in corr_matrix.columns:
                 if x in self.points.get("imu", []):
                     for y in corr_matrix.index:
@@ -106,8 +103,7 @@ class Correlation:
         for points in self.points:
             columns = list(self.points[points]) + self.points.get("imu", [])
             missing_cols = [col for col in columns if col not in data.columns]
-            if missing_cols:
-                continue
+            columns = [item for item in columns if item not in missing_cols]
             df = data[columns]
             self.gen_corr_matrix(df, name=points)
 
