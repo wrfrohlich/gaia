@@ -26,8 +26,12 @@ class Clustering:
 
     def _plot_cluster_results(self, data, clusters, title, filename, fontsize=12):
         """Helper function to plot and save cluster results."""
+        data = data.reset_index(drop=True)
         plt.figure(figsize=(11, 7))
-        sns.scatterplot(x=data[:, 0], y=data[:, 1], hue=clusters, palette='viridis')
+        try:
+            sns.scatterplot(x=data[:, 0], y=data[:, 1], hue=clusters, palette='viridis')
+        except pd.errors.InvalidIndexError:
+            sns.scatterplot(x=data.iloc[:, 0], y=data.iloc[:, 1], hue=clusters, palette='viridis')
         if fontsize == 12:
             plt.title(title)
         plt.xlabel("Principal Component 1", fontsize=fontsize)
@@ -86,6 +90,7 @@ class Clustering:
                 else:
                     shifted_data[var1] = shifted_data[var1].shift(lag)
             shifted_data.dropna(inplace=True)
+            reduced_data = shifted_data
 
             if shifted_data.shape[0] > 1:
                 # Dimensionality reduction

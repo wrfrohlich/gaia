@@ -223,6 +223,8 @@ class Correlation:
         requirement = criterion if best else 0.0
         results = []
         for imu in self.points.get("imu", []):
+            if imu not in data:
+                continue
             for kinematic in data.columns:
                 if kinematic in self.points.get("imu", []):
                     continue
