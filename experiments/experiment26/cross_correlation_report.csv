@@ -6,7 +6,7 @@ r_should_x;vel_x;vel_z;NaN;NaN;NaN;NaN;NaN;NaN
 r_should_y;gyro_y;pitch;yaw;NaN;NaN;NaN;NaN;NaN
 r_should_z;vel_x;vel_y;vel_z;NaN;NaN;NaN;NaN;NaN
 l_should_x;vel_x;vel_z;NaN;NaN;NaN;NaN;NaN;NaN
-l_should_y;acc_z;vel_x;vel_y;vel_z;NaN;NaN;NaN;NaN
+l_should_y;acc_z;pos_z;vel_x;vel_y;vel_z;NaN;NaN;NaN
 l_should_z;vel_x;vel_y;vel_z;NaN;NaN;NaN;NaN;NaN
 sacrum_s_x;vel_x;vel_z;yaw;NaN;NaN;NaN;NaN;NaN
 sacrum_s_y;gyro_y;pitch;vel_y;vel_z;NaN;NaN;NaN;NaN
@@ -18,7 +18,7 @@ l_asis_x;vel_x;vel_y;vel_z;NaN;NaN;NaN;NaN;NaN
 l_asis_y;acc_z;gyro_y;jerk_x;pos_z;vel_x;vel_y;vel_z;NaN
 l_asis_z;vel_x;vel_y;vel_z;NaN;NaN;NaN;NaN;NaN
 MIDASIS_x;vel_x;vel_y;vel_z;NaN;NaN;NaN;NaN;NaN
-MIDASIS_y;acc_x;acc_z;gyro_y;jerk_x;mag_acc;pos_z;vel_y;NaN
+MIDASIS_y;acc_x;acc_z;gyro_y;jerk_x;mag_acc;pos_x;pos_z;vel_y
 MIDASIS_z;vel_x;vel_y;vel_z;NaN;NaN;NaN;NaN;NaN
 r_knee_1_x;vel_x;vel_y;vel_z;NaN;NaN;NaN;NaN;NaN
 r_knee_1_y;gyro_x;gyro_z;jerk_x;mag_gyro;roll;NaN;NaN;NaN
@@ -45,10 +45,10 @@ l_met_x;vel_x;vel_z;NaN;NaN;NaN;NaN;NaN;NaN
 l_met_y;gyro_z;NaN;NaN;NaN;NaN;NaN;NaN;NaN
 l_met_z;vel_x;vel_y;vel_z;NaN;NaN;NaN;NaN;NaN
 SHO_x;vel_x;vel_z;NaN;NaN;NaN;NaN;NaN;NaN
-SHO_y;acc_z;gyro_y;jerk_x;pitch;pos_z;vel_y;NaN;NaN
+SHO_y;acc_z;gyro_y;jerk_x;pitch;pos_z;vel_y;vel_z;NaN
 SHO_z;vel_x;vel_y;vel_z;NaN;NaN;NaN;NaN;NaN
 PO_x;vel_x;vel_y;vel_z;NaN;NaN;NaN;NaN;NaN
-PO_y;acc_x;acc_z;gyro_y;jerk_x;mag_acc;pos_z;vel_y;NaN
+PO_y;acc_x;acc_z;gyro_y;jerk_x;mag_acc;pos_x;pos_z;vel_y
 PO_z;vel_x;vel_y;vel_z;NaN;NaN;NaN;NaN;NaN
 r_force_x;gyro_x;gyro_z;mag_gyro;NaN;NaN;NaN;NaN;NaN
 r_force_y;gyro_x;gyro_z;yaw;NaN;NaN;NaN;NaN;NaN

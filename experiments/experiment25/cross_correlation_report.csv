@@ -45,7 +45,7 @@ l_met_x;vel_x;vel_z;NaN;NaN;NaN
 l_met_y;gyro_z;NaN;NaN;NaN;NaN
 l_met_z;vel_x;vel_y;vel_z;NaN;NaN
 SHO_x;vel_x;vel_z;NaN;NaN;NaN
-SHO_y;acc_z;gyro_y;pitch;vel_y;NaN
+SHO_y;acc_z;gyro_y;pitch;vel_y;vel_z
 SHO_z;vel_x;vel_y;vel_z;NaN;NaN
 PO_x;vel_x;vel_y;vel_z;NaN;NaN
 PO_y;acc_x;acc_z;gyro_y;mag_acc;vel_y
