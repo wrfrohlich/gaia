@@ -26,11 +26,11 @@ class Clustering:
 
     def _plot_cluster_results(self, data, clusters, title, filename, fontsize=12):
         """Helper function to plot and save cluster results."""
-        data = data.reset_index(drop=True)
         plt.figure(figsize=(11, 7))
         try:
             sns.scatterplot(x=data[:, 0], y=data[:, 1], hue=clusters, palette='viridis')
         except pd.errors.InvalidIndexError:
+            data = data.reset_index(drop=True)
             sns.scatterplot(x=data.iloc[:, 0], y=data.iloc[:, 1], hue=clusters, palette='viridis')
         if fontsize == 12:
             plt.title(title)
