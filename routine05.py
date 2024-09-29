@@ -71,7 +71,8 @@ class Routine():
 
         ml = MachineLearning(name=name)
         sep_data = ml.sep_data()
-        ml.run(sep_data, merged_data)
+        #ml.run(sep_data, merged_data, method="linear_regression")
+        ml.run(sep_data, merged_data, method="random_forest")
 
 
 if __name__ == '__main__':
