@@ -113,21 +113,32 @@ class Correlation:
         """
         self.gen_corr_matrix(data, name=name)
 
-    def gen_corr_matrix(self, data, name, method="pearson"):
+    def gen_corr_matrix(self, data, name, method="pearson", annot_fontsize=15, title_fontsize=16, label_fontsize=15):
         """
         Generates and saves correlation matrices (Pearson, Spearman, Kendall) for the given data.
+        Allows customization of annotation font size, title font size, and label font size.
         """
         corr_matrix = data.corr(method=method)
-        plt.figure(figsize=(14, 10))
-        sns.heatmap(corr_matrix, annot=True, fmt=".2f", cmap='coolwarm')
-        plt.title(f'correlation_matrix_{method}_{name}')
+
+        plt.figure(figsize=(18, 12))
+        sns.heatmap(corr_matrix, annot=True, fmt=".2f", cmap='coolwarm',
+                    annot_kws={"size": annot_fontsize},
+                    cbar_kws={'label': 'Correlation Coefficient'})
+        plt.title(f'correlation_matrix_{method}_{name}', fontsize=title_fontsize)
+        plt.xticks(fontsize=label_fontsize)
+        plt.yticks(fontsize=label_fontsize)
         plt.savefig(f'{self.path_experiment}/matrix_{name}.png')
         plt.clf()
 
+        # Triangular matrix plot
         mask = np.triu(np.ones_like(corr_matrix, dtype=bool))
-        plt.figure(figsize=(14, 10))
-        sns.heatmap(corr_matrix, mask=mask, annot=True, cmap='coolwarm', vmin=-1, vmax=1, linewidths=0.5)
-        plt.title(f'triangular_correlation_{method}_{name}')
+        plt.figure(figsize=(18, 12))
+        sns.heatmap(corr_matrix, mask=mask, annot=True, cmap='coolwarm', vmin=-1, vmax=1, linewidths=0.5,
+                    annot_kws={"size": annot_fontsize},
+                    cbar_kws={'label': 'Correlation Coefficient'})
+        plt.title(f'triangular_correlation_{method}_{name}', fontsize=title_fontsize)
+        plt.xticks(fontsize=label_fontsize)
+        plt.yticks(fontsize=label_fontsize)
         plt.savefig(f'{self.path_experiment}/trig_matrix_{name}.png')
         plt.clf()
 
