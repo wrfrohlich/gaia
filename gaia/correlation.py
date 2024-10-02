@@ -10,6 +10,7 @@ from scipy.stats import pearsonr, spearmanr, kendalltau
 import statsmodels.stats.inter_rater as irr
 from gaia.config import Config
 
+
 class Correlation:
     """
     A class for computing and visualizing various correlation metrics between data series.
@@ -53,16 +54,20 @@ class Correlation:
                         if y not in self.points.get("imu", []):
                             correlation_value = corr_matrix.loc[y, x]
                             if abs(correlation_value) > level and x != y:
-                                correlations_list.append({
-                                    'group': points,
-                                    'imu': x,
-                                    'point': y,
-                                    'corr': correlation_value
-                                })
+                                correlations_list.append(
+                                    {
+                                        "group": points,
+                                        "imu": x,
+                                        "point": y,
+                                        "corr": correlation_value,
+                                    }
+                                )
 
         correlations_df = pd.DataFrame(correlations_list)
-        correlations_df = correlations_df.sort_values(by=["imu", "corr"], ascending=[True, False]).reset_index(drop=True)
-        correlations_df.to_csv(f'{self.path_experiment}/correlations.csv', index=False)
+        correlations_df = correlations_df.sort_values(
+            by=["imu", "corr"], ascending=[True, False]
+        ).reset_index(drop=True)
+        correlations_df.to_csv(f"{self.path_experiment}/correlations.csv", index=False)
 
         return correlations_df
 
@@ -71,10 +76,12 @@ class Correlation:
         Analyzes correlations from a CSV file and generates a report.
         """
         imus = self.points.get("imu", [])
-        data = pd.read_csv(f'{self.path_experiment}/correlations.csv')
+        data = pd.read_csv(f"{self.path_experiment}/correlations.csv")
 
-        if 'imu' not in data.columns or 'point' not in data.columns:
-            raise ValueError("The CSV file does not contain the expected 'imu' and 'point' columns.")
+        if "imu" not in data.columns or "point" not in data.columns:
+            raise ValueError(
+                "The CSV file does not contain the expected 'imu' and 'point' columns."
+            )
 
         correlation_report = {}
         for imu in imus:
@@ -85,10 +92,10 @@ class Correlation:
                 correlation_report[imu] = filtered_df["point"].tolist()
 
         if correlation_report:
-            df_report = pd.DataFrame.from_dict(correlation_report, orient='index')
+            df_report = pd.DataFrame.from_dict(correlation_report, orient="index")
             df_report = df_report.fillna("")
-            output_path = f'{self.path_experiment}/correlation_report.csv'
-            df_report.to_csv(output_path, sep=';', index=True, header=True)
+            output_path = f"{self.path_experiment}/correlation_report.csv"
+            df_report.to_csv(output_path, sep=";", index=True, header=True)
 
             print(f"Correlation report exported to: {output_path}")
             return df_report
@@ -113,7 +120,15 @@ class Correlation:
         """
         self.gen_corr_matrix(data, name=name)
 
-    def gen_corr_matrix(self, data, name, method="pearson", annot_fontsize=15, title_fontsize=16, label_fontsize=15):
+    def gen_corr_matrix(
+        self,
+        data,
+        name,
+        method="pearson",
+        annot_fontsize=15,
+        title_fontsize=16,
+        label_fontsize=15,
+    ):
         """
         Generates and saves correlation matrices (Pearson, Spearman, Kendall) for the given data.
         Allows customization of annotation font size, title font size, and label font size.
@@ -121,25 +136,41 @@ class Correlation:
         corr_matrix = data.corr(method=method)
 
         plt.figure(figsize=(18, 12))
-        sns.heatmap(corr_matrix, annot=True, fmt=".2f", cmap='coolwarm',
-                    annot_kws={"size": annot_fontsize},
-                    cbar_kws={'label': 'Correlation Coefficient'})
-        plt.title(f'correlation_matrix_{method}_{name}', fontsize=title_fontsize)
+        sns.heatmap(
+            corr_matrix,
+            annot=True,
+            fmt=".2f",
+            cmap="coolwarm",
+            annot_kws={"size": annot_fontsize},
+            cbar_kws={"label": "Correlation Coefficient"},
+        )
+        # plt.title(f'correlation_matrix_{method}_{name}', fontsize=title_fontsize)
         plt.xticks(fontsize=label_fontsize)
         plt.yticks(fontsize=label_fontsize)
-        plt.savefig(f'{self.path_experiment}/matrix_{name}.png')
+        plt.tight_layout()
+        plt.savefig(f"{self.path_experiment}/matrix_{name}.png")
         plt.clf()
 
         # Triangular matrix plot
         mask = np.triu(np.ones_like(corr_matrix, dtype=bool))
         plt.figure(figsize=(18, 12))
-        sns.heatmap(corr_matrix, mask=mask, annot=True, cmap='coolwarm', vmin=-1, vmax=1, linewidths=0.5,
-                    annot_kws={"size": annot_fontsize},
-                    cbar_kws={'label': 'Correlation Coefficient'})
-        plt.title(f'triangular_correlation_{method}_{name}', fontsize=title_fontsize)
+        sns.heatmap(
+            corr_matrix,
+            mask=mask,
+            annot=True,
+            cmap="coolwarm",
+            vmin=-1,
+            vmax=1,
+            linewidths=0.5,
+            #            cbar=False,
+            annot_kws={"size": annot_fontsize},
+            cbar_kws={"label": "Correlation Coefficient"},
+        )
+        # plt.title(f'triangular_correlation_{method}_{name}', fontsize=title_fontsize)
         plt.xticks(fontsize=label_fontsize)
         plt.yticks(fontsize=label_fontsize)
-        plt.savefig(f'{self.path_experiment}/trig_matrix_{name}.png')
+        plt.tight_layout()
+        plt.savefig(f"{self.path_experiment}/trig_matrix_{name}.png")
         plt.clf()
 
     def cross_correlation(self, data, report, print_fig=True, fontsize=12):
@@ -149,29 +180,32 @@ class Correlation:
         for idx in report:
             for imu in report.index:
                 if report[idx][imu] and print_fig:
-                    self.print_cross_corr(data, imu, report[idx][imu], fontsize=fontsize)
+                    self.print_cross_corr(
+                        data, imu, report[idx][imu], fontsize=fontsize
+                    )
 
     def print_cross_corr(self, df, value_a, value_b, max_lag=100, fontsize=12):
         """
         Computes and plots cross-correlation between two data series with more control.
         """
         corr, lags = self.calculate_cross_correlation(df[value_a], df[value_b])
-        
+
         # Limitar o número de lags para os valores especificados
         limited_lags = (lags >= -max_lag) & (lags <= max_lag)
         lags = lags[limited_lags]
         corr = corr[limited_lags]
         plt.figure(figsize=(10, 7))
-        plt.plot(lags, corr, marker='o')
-        if fontsize == 12:
-            plt.title(f'Cross-Correlation: {value_a} vs {value_b}')
-        plt.xlabel('Lags', fontsize=fontsize)
-        plt.ylabel('Correlation', fontsize=fontsize)
+        plt.plot(lags, corr, marker="o")
+        # if fontsize == 12:
+        #    plt.title(f'Cross-Correlation: {value_a} vs {value_b}')
+        plt.xlabel("Lags", fontsize=fontsize)
+        plt.ylabel("Correlation", fontsize=fontsize)
         plt.xticks(fontsize=fontsize)
         plt.yticks(fontsize=fontsize)
         plt.grid(True)
-        plt.axhline(0, color='black', lw=1)
-        plt.savefig(f'{self.path_experiment}/cross_corr_{value_a}_vs_{value_b}.png')
+        plt.axhline(0, color="black", lw=1)
+        plt.tight_layout()
+        plt.savefig(f"{self.path_experiment}/cross_corr_{value_a}_vs_{value_b}.png")
         plt.clf()
 
     def calculate_cross_correlation(self, series_a, series_b):
@@ -180,8 +214,8 @@ class Correlation:
         """
         series_a = series_a - np.mean(series_a)
         series_b = series_b - np.mean(series_b)
-        corr = correlate(series_a, series_b, mode='full')
-        corr /= (np.std(series_a) * np.std(series_b) * len(series_a))
+        corr = correlate(series_a, series_b, mode="full")
+        corr /= np.std(series_a) * np.std(series_b) * len(series_a)
         lags = np.arange(-(len(series_a) - 1), len(series_a))
         return corr, lags
 
@@ -211,23 +245,35 @@ class Correlation:
         for idx in report:
             for imu in report.index:
                 if report[idx][imu]:
-                    best_lag, best_corr = self.find_best_cross_correlation_lag(data[imu], data[report[idx][imu]])
-                    results.append({
-                        'imu': imu,
-                        'kinematic': report[idx][imu],
-                        'lag': best_lag,
-                        'corr': best_corr
-                    })
+                    best_lag, best_corr = self.find_best_cross_correlation_lag(
+                        data[imu], data[report[idx][imu]]
+                    )
+                    results.append(
+                        {
+                            "imu": imu,
+                            "kinematic": report[idx][imu],
+                            "lag": best_lag,
+                            "corr": best_corr,
+                        }
+                    )
                     if print_fig:
-                        self.print_cross_corr(data, imu, report[idx][imu], fontsize=fontsize)
-        
+                        self.print_cross_corr(
+                            data, imu, report[idx][imu], fontsize=fontsize
+                        )
+
         results_df = pd.DataFrame(results)
-        results_df = results_df.sort_values(by=["imu", "corr"], ascending=[True, False]).reset_index(drop=True)
-        results_df.to_csv(f'{self.path_experiment}/cross_correlation_results.csv', index=False)
+        results_df = results_df.sort_values(
+            by=["imu", "corr"], ascending=[True, False]
+        ).reset_index(drop=True)
+        results_df.to_csv(
+            f"{self.path_experiment}/cross_correlation_results.csv", index=False
+        )
 
         return results_df
 
-    def cross_correlation_exploratory(self, data, criterion=0.7, best=False, max_lag=100, print_fig=True, fontsize=12):
+    def cross_correlation_exploratory(
+        self, data, criterion=0.7, best=False, max_lag=100, print_fig=True, fontsize=12
+    ):
         """
         Analyzes cross-correlation for all pairs of series, finds the best lag for each pair, and saves the results in a CSV.
         """
@@ -239,20 +285,29 @@ class Correlation:
             for kinematic in data.columns:
                 if kinematic in self.points.get("imu", []):
                     continue
-                best_lag, best_corr = self.find_best_cross_correlation_lag(data[imu], data[kinematic])
+                best_lag, best_corr = self.find_best_cross_correlation_lag(
+                    data[imu], data[kinematic]
+                )
                 if abs(best_corr) >= requirement and abs(best_lag) < max_lag:
                     if abs(best_corr) >= criterion and print_fig:
                         self.print_cross_corr(data, imu, kinematic, fontsize=fontsize)
-                    results.append({
-                        'imu': imu,
-                        'kinematic': kinematic,
-                        'lag': best_lag,
-                        'corr': best_corr
-                    })
+                    results.append(
+                        {
+                            "imu": imu,
+                            "kinematic": kinematic,
+                            "lag": best_lag,
+                            "corr": best_corr,
+                        }
+                    )
 
         results_df = pd.DataFrame(results)
-        results_df = results_df.sort_values(by=["imu", "corr"], ascending=[True, False]).reset_index(drop=True)
-        results_df.to_csv(f'{self.path_experiment}/cross_correlation_exploratory_results.csv', index=False)
+        results_df = results_df.sort_values(
+            by=["imu", "corr"], ascending=[True, False]
+        ).reset_index(drop=True)
+        results_df.to_csv(
+            f"{self.path_experiment}/cross_correlation_exploratory_results.csv",
+            index=False,
+        )
 
         return results_df
 
@@ -265,9 +320,7 @@ class Correlation:
         data = []
 
         # Preencher os dados do IMU
-        imu_columns = [
-            'acc_x'
-        ]
+        imu_columns = ["acc_x"]
 
         for col in imu_columns:
             print(len(df[col]))
@@ -275,9 +328,7 @@ class Correlation:
                 data.append([col, "IMU", value])
 
         # Preencher os dados cinemáticos (Kinematics)
-        kinematic_columns = [
-            "c7_x"
-        ]
+        kinematic_columns = ["c7_x"]
 
         for col in kinematic_columns:
             print(len(df[col]))
@@ -285,8 +336,13 @@ class Correlation:
                 data.append([col, "Kinematic", value])
 
         df_combined = pd.DataFrame(data, columns=["body_parts", "type", "value"])
-        df_combined['value'].fillna(df_combined['value'].mean(), inplace=True)
+        df_combined["value"].fillna(df_combined["value"].mean(), inplace=True)
 
-
-        icc_result = pg.intraclass_corr(data=df_combined, targets='body_parts', raters='type', ratings='value', nan_policy='omit')
+        icc_result = pg.intraclass_corr(
+            data=df_combined,
+            targets="body_parts",
+            raters="type",
+            ratings="value",
+            nan_policy="omit",
+        )
         print(icc_result)

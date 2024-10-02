@@ -7,6 +7,7 @@ from gaia.filtering import Filtering
 from pandas import DataFrame, merge_asof
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
+
 class Preprocessing:
     """
     A class for processing and merging data frames.
@@ -35,9 +36,17 @@ class Preprocessing:
         """
         self.filtering = Filtering()
 
-    def run(self, df1, df2, df3=None, remove_nan=True, convert_nan='mean',
-            interpolate_method='linear', filter_data="low-pass",
-            normalization='standard'):
+    def run(
+        self,
+        df1,
+        df2,
+        df3=None,
+        remove_nan=True,
+        convert_nan="mean",
+        interpolate_method="linear",
+        filter_data="low-pass",
+        normalization="standard",
+    ):
         """
         Preprocesses and merges two data frames with customizable options.
 
@@ -63,15 +72,34 @@ class Preprocessing:
         pd.DataFrame
             The merged data frame after preprocessing.
         """
-        df1 = self.preprocess(df1, remove_nan, convert_nan, interpolate_method, filter_data, normalization)
-        df2 = self.preprocess(df2, remove_nan, convert_nan, interpolate_method, filter_data, normalization)
+        df1 = self.preprocess(
+            df1, remove_nan, convert_nan, interpolate_method, filter_data, normalization
+        )
+        df2 = self.preprocess(
+            df2, remove_nan, convert_nan, interpolate_method, filter_data, normalization
+        )
         merged_data = self.merge(df1, df2)
         if type(df3) == DataFrame:
-            df3 = self.preprocess(df3, remove_nan, convert_nan, interpolate_method, filter_data, normalization)
+            df3 = self.preprocess(
+                df3,
+                remove_nan,
+                convert_nan,
+                interpolate_method,
+                filter_data,
+                normalization,
+            )
             merged_data = self.merge(merged_data, df3)
         return merged_data
 
-    def preprocess(self, df, remove_nan=True, convert_nan='mean', interpolate_method='linear', filter_data="low-pass", normalization='standard'):
+    def preprocess(
+        self,
+        df,
+        remove_nan=True,
+        convert_nan="mean",
+        interpolate_method="linear",
+        filter_data="low-pass",
+        normalization="standard",
+    ):
         """
         Applies preprocessing steps to a data frame with customizable options.
 
@@ -109,7 +137,7 @@ class Preprocessing:
             df = self.normalize_data(df, scaler_type=normalization)
         return df
 
-    def remove_nan(self, df, param='time'):
+    def remove_nan(self, df, param="time"):
         """
         Removes rows with NaN values in the specified column.
 
@@ -126,7 +154,7 @@ class Preprocessing:
             The data frame with NaN values removed.
         """
         return df.dropna(subset=[param])
-    
+
     def convert_nan(self, df, method="mean"):
         """
         Replaces NaN values in the data frame based on the specified method.
@@ -149,7 +177,7 @@ class Preprocessing:
             df.fillna(0, inplace=True)
         return df
 
-    def normalize_data(self, df, scaler_type='standard'):
+    def normalize_data(self, df, scaler_type="standard"):
         """
         Normalizes the data frame using the specified scaler type.
 
@@ -165,13 +193,13 @@ class Preprocessing:
         pd.DataFrame
             The normalized data frame.
         """
-        scaler = StandardScaler() if scaler_type == 'standard' else MinMaxScaler()
-        scaled_data = scaler.fit_transform(df.drop(columns=['time']))
-        df_scaled = DataFrame(scaled_data, columns=df.columns.drop('time'))
-        df_scaled['time'] = df['time'].values
+        scaler = StandardScaler() if scaler_type == "standard" else MinMaxScaler()
+        scaled_data = scaler.fit_transform(df.drop(columns=["time"]))
+        df_scaled = DataFrame(scaled_data, columns=df.columns.drop("time"))
+        df_scaled["time"] = df["time"].values
         return df_scaled
 
-    def interpolate(self, df, method='linear'):
+    def interpolate(self, df, method="linear"):
         """
         Interpolates missing values in the data frame using the specified method.
 
@@ -189,7 +217,7 @@ class Preprocessing:
         """
         return df.interpolate(method=method)
 
-    def merge(self, df1, df2, param='time'):
+    def merge(self, df1, df2, param="time"):
         """
         Merges two data frames on the specified column using an asof merge.
 

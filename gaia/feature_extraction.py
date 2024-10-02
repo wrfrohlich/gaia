@@ -1,10 +1,12 @@
 import pandas as pd
 import numpy as np
 
+
 class FeatureExtraction:
     """
     A class for extracting and analyzing features from wearable and camera data.
     """
+
     @staticmethod
     def distance_between_points(df):
         """
@@ -20,10 +22,12 @@ class FeatureExtraction:
         None
             Adds a new column 'dist_heel' to the DataFrame.
         """
-        df['dist_heel'] = np.sqrt((df['r_heel_x'] - df['l_heel_x'])**2 + 
-                                  (df['r_heel_y'] - df['l_heel_y'])**2 + 
-                                  (df['r_heel_z'] - df['l_heel_z'])**2)
-    
+        df["dist_heel"] = np.sqrt(
+            (df["r_heel_x"] - df["l_heel_x"]) ** 2
+            + (df["r_heel_y"] - df["l_heel_y"]) ** 2
+            + (df["r_heel_z"] - df["l_heel_z"]) ** 2
+        )
+
     @staticmethod
     def calculate_movement_speed(df):
         """
@@ -39,10 +43,15 @@ class FeatureExtraction:
         None
             Adds a new column 'r_heel_speed' to the DataFrame.
         """
-        df['r_heel_speed'] = np.sqrt(df['r_heel_x'].diff()**2 + 
-                                     df['r_heel_y'].diff()**2 + 
-                                     df['r_heel_z'].diff()**2) / df['time'].diff()
-        
+        df["r_heel_speed"] = (
+            np.sqrt(
+                df["r_heel_x"].diff() ** 2
+                + df["r_heel_y"].diff() ** 2
+                + df["r_heel_z"].diff() ** 2
+            )
+            / df["time"].diff()
+        )
+
     @staticmethod
     def calculate_angle(p1, p2, p3):
         """
@@ -85,11 +94,21 @@ class FeatureExtraction:
         """
         angles = []
         for i in range(len(df)):
-            p1 = np.array([df.loc[i, 'r_shoulder_x'], df.loc[i, 'r_shoulder_y'], df.loc[i, 'r_shoulder_z']])
-            p2 = np.array([df.loc[i, 'r_knee_x'], df.loc[i, 'r_knee_y'], df.loc[i, 'r_knee_z']])
-            p3 = np.array([df.loc[i, 'r_heel_x'], df.loc[i, 'r_heel_y'], df.loc[i, 'r_heel_z']])
+            p1 = np.array(
+                [
+                    df.loc[i, "r_shoulder_x"],
+                    df.loc[i, "r_shoulder_y"],
+                    df.loc[i, "r_shoulder_z"],
+                ]
+            )
+            p2 = np.array(
+                [df.loc[i, "r_knee_x"], df.loc[i, "r_knee_y"], df.loc[i, "r_knee_z"]]
+            )
+            p3 = np.array(
+                [df.loc[i, "r_heel_x"], df.loc[i, "r_heel_y"], df.loc[i, "r_heel_z"]]
+            )
             angles.append(FeatureExtraction.calculate_angle(p1, p2, p3))
-        df['knee_angle'] = angles
+        df["knee_angle"] = angles
 
     @staticmethod
     def calculate_velocity(acc_series, dt):
@@ -133,7 +152,7 @@ class FeatureExtraction:
     def calculate_angular_acceleration(angular_velocity, dt):
         """
         Calcula a aceleração angular a partir da velocidade angular usando diferenciação numérica.
-        
+
         Parameters
         ----------
         angular_velocity : pd.Series

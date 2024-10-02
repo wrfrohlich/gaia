@@ -4,7 +4,7 @@ from gaia.correlation import Correlation
 from gaia.preprocessing import Preprocessing
 
 
-class Routine():
+class Routine:
     def __init__(self):
         self.config = Config()
         self.path = self.config.data_path
@@ -28,7 +28,15 @@ class Routine():
         """
         name = "experiment01"
         preproc = Preprocessing()
-        merged_data = preproc.run(self.df1, self.df2, remove_nan=True, convert_nan=None, interpolate_method=None, filter_data=None, normalization=None)
+        merged_data = preproc.run(
+            self.df1,
+            self.df2,
+            remove_nan=True,
+            convert_nan=None,
+            interpolate_method=None,
+            filter_data=None,
+            normalization=None,
+        )
         corr = Correlation(name=name)
         corr.corr_matrix(merged_data)
 
@@ -40,7 +48,15 @@ class Routine():
         """
         name = "experiment02"
         preproc = Preprocessing()
-        merged_data = preproc.run(self.df1, self.df2, remove_nan=True, convert_nan="zero", interpolate_method=None, filter_data=None, normalization=None)
+        merged_data = preproc.run(
+            self.df1,
+            self.df2,
+            remove_nan=True,
+            convert_nan="zero",
+            interpolate_method=None,
+            filter_data=None,
+            normalization=None,
+        )
         corr = Correlation(name=name)
         corr.corr_matrix(merged_data)
 
@@ -52,7 +68,15 @@ class Routine():
         """
         name = "experiment03"
         preproc = Preprocessing()
-        merged_data = preproc.run(self.df1, self.df2, remove_nan=True, convert_nan="mean", interpolate_method=None, filter_data=None, normalization=None)
+        merged_data = preproc.run(
+            self.df1,
+            self.df2,
+            remove_nan=True,
+            convert_nan="mean",
+            interpolate_method=None,
+            filter_data=None,
+            normalization=None,
+        )
         corr = Correlation(name=name)
         corr.corr_matrix(merged_data)
 
@@ -64,7 +88,15 @@ class Routine():
         """
         name = "experiment04"
         preproc = Preprocessing()
-        merged_data = preproc.run(self.df1, self.df2, remove_nan=True, convert_nan=None, interpolate_method="linear", filter_data=None, normalization=None)
+        merged_data = preproc.run(
+            self.df1,
+            self.df2,
+            remove_nan=True,
+            convert_nan=None,
+            interpolate_method="linear",
+            filter_data=None,
+            normalization=None,
+        )
         corr = Correlation(name=name)
         corr.corr_matrix(merged_data)
 
@@ -77,7 +109,15 @@ class Routine():
         """
         name = "experiment05"
         preproc = Preprocessing()
-        merged_data = preproc.run(self.df1, self.df2, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data=None, normalization=None)
+        merged_data = preproc.run(
+            self.df1,
+            self.df2,
+            remove_nan=True,
+            convert_nan="mean",
+            interpolate_method="linear",
+            filter_data=None,
+            normalization=None,
+        )
         corr = Correlation(name=name)
         corr.corr_matrix(merged_data)
 
@@ -91,7 +131,15 @@ class Routine():
         """
         name = "experiment06"
         preproc = Preprocessing()
-        merged_data = preproc.run(self.df1, self.df2, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="low-pass", normalization=None)
+        merged_data = preproc.run(
+            self.df1,
+            self.df2,
+            remove_nan=True,
+            convert_nan="mean",
+            interpolate_method="linear",
+            filter_data="low-pass",
+            normalization=None,
+        )
         corr = Correlation(name=name)
         corr.corr_matrix(merged_data)
 
@@ -105,7 +153,15 @@ class Routine():
         """
         name = "experiment07"
         preproc = Preprocessing()
-        merged_data = preproc.run(self.df1, self.df2, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="band-pass", normalization=None)
+        merged_data = preproc.run(
+            self.df1,
+            self.df2,
+            remove_nan=True,
+            convert_nan="mean",
+            interpolate_method="linear",
+            filter_data="band-pass",
+            normalization=None,
+        )
         corr = Correlation(name=name)
         corr.corr_matrix(merged_data)
 
@@ -119,7 +175,15 @@ class Routine():
         """
         name = "experiment08"
         preproc = Preprocessing()
-        merged_data = preproc.run(self.df1, self.df2, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="high-pass", normalization=None)
+        merged_data = preproc.run(
+            self.df1,
+            self.df2,
+            remove_nan=True,
+            convert_nan="mean",
+            interpolate_method="linear",
+            filter_data="high-pass",
+            normalization=None,
+        )
         corr = Correlation(name=name)
         corr.corr_matrix(merged_data)
 
@@ -134,7 +198,15 @@ class Routine():
         """
         name = "experiment09"
         preproc = Preprocessing()
-        merged_data = preproc.run(self.df1, self.df2, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="low-pass", normalization="standard")
+        merged_data = preproc.run(
+            self.df1,
+            self.df2,
+            remove_nan=True,
+            convert_nan="mean",
+            interpolate_method="linear",
+            filter_data="low-pass",
+            normalization="standard",
+        )
         corr = Correlation(name=name)
         corr.corr_matrix(merged_data)
 
@@ -150,12 +222,21 @@ class Routine():
         """
         name = "experiment10"
         preproc = Preprocessing()
-        merged_data = preproc.run(self.df1, self.df2, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="low-pass", normalization="standard")
+        merged_data = preproc.run(
+            self.df1,
+            self.df2,
+            remove_nan=True,
+            convert_nan="mean",
+            interpolate_method="linear",
+            filter_data="low-pass",
+            normalization="standard",
+        )
         data = preproc.get_magnitude(merged_data)
         corr = Correlation(name=name)
         corr.corr_matrix_special(data, name="magnitude")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     routine = Routine()
     routine.run_experiment01()
     routine.run_experiment02()

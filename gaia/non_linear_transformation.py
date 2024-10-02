@@ -1,7 +1,8 @@
 import pandas as pd
 import numpy as np
 
-class NonLinearTransformation():
+
+class NonLinearTransformation:
     def apply_log_transformation(series):
         """
         Apply log transformation to the data series.
@@ -33,4 +34,3 @@ class NonLinearTransformation():
             Exponentially-transformed data series.
         """
         return np.exp(series)
-

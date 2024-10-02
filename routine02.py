@@ -5,7 +5,7 @@ from gaia.preprocessing import Preprocessing
 from gaia.feature_extraction import FeatureExtraction
 
 
-class Routine():
+class Routine:
     def __init__(self):
         self.config = Config()
         self.path = self.config.data_path
@@ -35,8 +35,24 @@ class Routine():
         """
         name = "experiment11"
         preproc = Preprocessing()
-        merged_data = preproc.run(self.df1, self.df2, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="low-pass", normalization="standard")
-        merged_data = preproc.run(merged_data, self.df3, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="low-pass", normalization="standard")
+        merged_data = preproc.run(
+            self.df1,
+            self.df2,
+            remove_nan=True,
+            convert_nan="mean",
+            interpolate_method="linear",
+            filter_data="low-pass",
+            normalization="standard",
+        )
+        merged_data = preproc.run(
+            merged_data,
+            self.df3,
+            remove_nan=True,
+            convert_nan="mean",
+            interpolate_method="linear",
+            filter_data="low-pass",
+            normalization="standard",
+        )
         corr = Correlation(name=name)
         corr.corr_matrix(merged_data)
 
@@ -52,8 +68,24 @@ class Routine():
         """
         name = "experiment12"
         preproc = Preprocessing()
-        merged_data = preproc.run(self.df1, self.df2, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="low-pass", normalization="standard")
-        merged_data = preproc.run(merged_data, self.df3, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="low-pass", normalization="standard")
+        merged_data = preproc.run(
+            self.df1,
+            self.df2,
+            remove_nan=True,
+            convert_nan="mean",
+            interpolate_method="linear",
+            filter_data="low-pass",
+            normalization="standard",
+        )
+        merged_data = preproc.run(
+            merged_data,
+            self.df3,
+            remove_nan=True,
+            convert_nan="mean",
+            interpolate_method="linear",
+            filter_data="low-pass",
+            normalization="standard",
+        )
         corr = Correlation(name=name)
         res_corr = corr.get_higher_corr(merged_data, level="0.4")
         corr.analyze_correlation()
@@ -70,8 +102,24 @@ class Routine():
         """
         name = "experiment13"
         preproc = Preprocessing()
-        merged_data = preproc.run(self.df1, self.df2, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="low-pass", normalization="standard")
-        merged_data = preproc.run(merged_data, self.df3, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="low-pass", normalization="standard")
+        merged_data = preproc.run(
+            self.df1,
+            self.df2,
+            remove_nan=True,
+            convert_nan="mean",
+            interpolate_method="linear",
+            filter_data="low-pass",
+            normalization="standard",
+        )
+        merged_data = preproc.run(
+            merged_data,
+            self.df3,
+            remove_nan=True,
+            convert_nan="mean",
+            interpolate_method="linear",
+            filter_data="low-pass",
+            normalization="standard",
+        )
         corr = Correlation(name=name)
         corr.get_higher_corr(merged_data, level="0.4")
         corr_data = corr.analyze_correlation()
@@ -89,8 +137,24 @@ class Routine():
         """
         name = "experiment14"
         preproc = Preprocessing()
-        merged_data = preproc.run(self.df1, self.df2, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="low-pass", normalization="standard")
-        merged_data = preproc.run(merged_data, self.df3, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="low-pass", normalization="standard")
+        merged_data = preproc.run(
+            self.df1,
+            self.df2,
+            remove_nan=True,
+            convert_nan="mean",
+            interpolate_method="linear",
+            filter_data="low-pass",
+            normalization="standard",
+        )
+        merged_data = preproc.run(
+            merged_data,
+            self.df3,
+            remove_nan=True,
+            convert_nan="mean",
+            interpolate_method="linear",
+            filter_data="low-pass",
+            normalization="standard",
+        )
         corr = Correlation(name=name)
         corr.get_higher_corr(merged_data, level="0.4")
         corr_data = corr.analyze_correlation()
@@ -108,8 +172,24 @@ class Routine():
         """
         name = "experiment15"
         preproc = Preprocessing()
-        merged_data = preproc.run(self.df1, self.df2, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="low-pass", normalization="standard")
-        merged_data = preproc.run(merged_data, self.df3, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="low-pass", normalization="standard")
+        merged_data = preproc.run(
+            self.df1,
+            self.df2,
+            remove_nan=True,
+            convert_nan="mean",
+            interpolate_method="linear",
+            filter_data="low-pass",
+            normalization="standard",
+        )
+        merged_data = preproc.run(
+            merged_data,
+            self.df3,
+            remove_nan=True,
+            convert_nan="mean",
+            interpolate_method="linear",
+            filter_data="low-pass",
+            normalization="standard",
+        )
         corr = Correlation(name=name)
         corr.cross_correlation_exploratory(merged_data)
 
@@ -125,7 +205,16 @@ class Routine():
         """
         name = "experiment16"
         preproc = Preprocessing()
-        merged_data = preproc.run(self.df1, self.df2, self.df3, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="low-pass", normalization="minmax")
+        merged_data = preproc.run(
+            self.df1,
+            self.df2,
+            self.df3,
+            remove_nan=True,
+            convert_nan="mean",
+            interpolate_method="linear",
+            filter_data="low-pass",
+            normalization="minmax",
+        )
         corr = Correlation(name=name)
         corr.get_higher_corr(merged_data, level="0.4")
         corr_data = corr.analyze_correlation()
@@ -144,25 +233,43 @@ class Routine():
         """
         name = "experiment17"
         preproc = Preprocessing()
-        dt = self.df3['time'].diff().mean()
-        self.df3['vel_x'] = FeatureExtraction.calculate_velocity(self.df3['acc_x'], dt)
-        self.df3['vel_y'] = FeatureExtraction.calculate_velocity(self.df3['acc_y'], dt)
-        self.df3['vel_z'] = FeatureExtraction.calculate_velocity(self.df3['acc_z'], dt)
+        dt = self.df3["time"].diff().mean()
+        self.df3["vel_x"] = FeatureExtraction.calculate_velocity(self.df3["acc_x"], dt)
+        self.df3["vel_y"] = FeatureExtraction.calculate_velocity(self.df3["acc_y"], dt)
+        self.df3["vel_z"] = FeatureExtraction.calculate_velocity(self.df3["acc_z"], dt)
 
-        self.df3['ang_acc_gyro_x'] = FeatureExtraction.calculate_angular_acceleration(self.df3['gyro_x'], dt)
-        self.df3['ang_acc_gyro_y'] = FeatureExtraction.calculate_angular_acceleration(self.df3['gyro_y'], dt)
-        self.df3['ang_acc_gyro_z'] = FeatureExtraction.calculate_angular_acceleration(self.df3['gyro_z'], dt)
+        self.df3["ang_acc_gyro_x"] = FeatureExtraction.calculate_angular_acceleration(
+            self.df3["gyro_x"], dt
+        )
+        self.df3["ang_acc_gyro_y"] = FeatureExtraction.calculate_angular_acceleration(
+            self.df3["gyro_y"], dt
+        )
+        self.df3["ang_acc_gyro_z"] = FeatureExtraction.calculate_angular_acceleration(
+            self.df3["gyro_z"], dt
+        )
 
-        self.df3['mag_acc'] = FeatureExtraction.calculate_magnitude(self.df3['acc_x'], self.df3['acc_y'], self.df3['acc_z'])
-        self.df3['mag_gyro'] = FeatureExtraction.calculate_magnitude(self.df3['gyro_x'], self.df3['gyro_y'], self.df3['gyro_z'])
-        merged_data = preproc.run(self.df1, self.df2, self.df3, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="low-pass", normalization="minmax")
+        self.df3["mag_acc"] = FeatureExtraction.calculate_magnitude(
+            self.df3["acc_x"], self.df3["acc_y"], self.df3["acc_z"]
+        )
+        self.df3["mag_gyro"] = FeatureExtraction.calculate_magnitude(
+            self.df3["gyro_x"], self.df3["gyro_y"], self.df3["gyro_z"]
+        )
+        merged_data = preproc.run(
+            self.df1,
+            self.df2,
+            self.df3,
+            remove_nan=True,
+            convert_nan="mean",
+            interpolate_method="linear",
+            filter_data="low-pass",
+            normalization="minmax",
+        )
 
         corr = Correlation(name=name)
         corr.get_higher_corr(merged_data, level=0.4)
         corr_data = corr.analyze_correlation()
         corr.cross_correlation_analysis(merged_data, corr_data)
         corr.cross_correlation_exploratory(merged_data, criterion=0.4, best=True)
-
 
     def run_experiment08(self):
         """
@@ -176,18 +283,37 @@ class Routine():
         """
         name = "experiment18"
         preproc = Preprocessing()
-        dt = self.df3['time'].diff().mean()
-        self.df3['vel_x'] = FeatureExtraction.calculate_velocity(self.df3['acc_x'], dt)
-        self.df3['vel_y'] = FeatureExtraction.calculate_velocity(self.df3['acc_y'], dt)
-        self.df3['vel_z'] = FeatureExtraction.calculate_velocity(self.df3['acc_z'], dt)
+        dt = self.df3["time"].diff().mean()
+        self.df3["vel_x"] = FeatureExtraction.calculate_velocity(self.df3["acc_x"], dt)
+        self.df3["vel_y"] = FeatureExtraction.calculate_velocity(self.df3["acc_y"], dt)
+        self.df3["vel_z"] = FeatureExtraction.calculate_velocity(self.df3["acc_z"], dt)
 
-        self.df3['ang_acc_gyro_x'] = FeatureExtraction.calculate_angular_acceleration(self.df3['gyro_x'], dt)
-        self.df3['ang_acc_gyro_y'] = FeatureExtraction.calculate_angular_acceleration(self.df3['gyro_y'], dt)
-        self.df3['ang_acc_gyro_z'] = FeatureExtraction.calculate_angular_acceleration(self.df3['gyro_z'], dt)
+        self.df3["ang_acc_gyro_x"] = FeatureExtraction.calculate_angular_acceleration(
+            self.df3["gyro_x"], dt
+        )
+        self.df3["ang_acc_gyro_y"] = FeatureExtraction.calculate_angular_acceleration(
+            self.df3["gyro_y"], dt
+        )
+        self.df3["ang_acc_gyro_z"] = FeatureExtraction.calculate_angular_acceleration(
+            self.df3["gyro_z"], dt
+        )
 
-        self.df3['mag_acc'] = FeatureExtraction.calculate_magnitude(self.df3['acc_x'], self.df3['acc_y'], self.df3['acc_z'])
-        self.df3['mag_gyro'] = FeatureExtraction.calculate_magnitude(self.df3['gyro_x'], self.df3['gyro_y'], self.df3['gyro_z'])
-        merged_data = preproc.run(self.df1, self.df2, self.df3, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="low-pass", normalization="minmax")
+        self.df3["mag_acc"] = FeatureExtraction.calculate_magnitude(
+            self.df3["acc_x"], self.df3["acc_y"], self.df3["acc_z"]
+        )
+        self.df3["mag_gyro"] = FeatureExtraction.calculate_magnitude(
+            self.df3["gyro_x"], self.df3["gyro_y"], self.df3["gyro_z"]
+        )
+        merged_data = preproc.run(
+            self.df1,
+            self.df2,
+            self.df3,
+            remove_nan=True,
+            convert_nan="mean",
+            interpolate_method="linear",
+            filter_data="low-pass",
+            normalization="minmax",
+        )
 
         corr = Correlation(name=name)
         corr.get_higher_corr(merged_data, level=0.7)
@@ -207,18 +333,37 @@ class Routine():
         """
         name = "experiment19"
         preproc = Preprocessing()
-        dt = self.df3['time'].diff().mean()
-        self.df3['vel_x'] = FeatureExtraction.calculate_velocity(self.df3['acc_x'], dt)
-        self.df3['vel_y'] = FeatureExtraction.calculate_velocity(self.df3['acc_y'], dt)
-        self.df3['vel_z'] = FeatureExtraction.calculate_velocity(self.df3['acc_z'], dt)
+        dt = self.df3["time"].diff().mean()
+        self.df3["vel_x"] = FeatureExtraction.calculate_velocity(self.df3["acc_x"], dt)
+        self.df3["vel_y"] = FeatureExtraction.calculate_velocity(self.df3["acc_y"], dt)
+        self.df3["vel_z"] = FeatureExtraction.calculate_velocity(self.df3["acc_z"], dt)
 
-        self.df3['ang_acc_gyro_x'] = FeatureExtraction.calculate_angular_acceleration(self.df3['gyro_x'], dt)
-        self.df3['ang_acc_gyro_y'] = FeatureExtraction.calculate_angular_acceleration(self.df3['gyro_y'], dt)
-        self.df3['ang_acc_gyro_z'] = FeatureExtraction.calculate_angular_acceleration(self.df3['gyro_z'], dt)
+        self.df3["ang_acc_gyro_x"] = FeatureExtraction.calculate_angular_acceleration(
+            self.df3["gyro_x"], dt
+        )
+        self.df3["ang_acc_gyro_y"] = FeatureExtraction.calculate_angular_acceleration(
+            self.df3["gyro_y"], dt
+        )
+        self.df3["ang_acc_gyro_z"] = FeatureExtraction.calculate_angular_acceleration(
+            self.df3["gyro_z"], dt
+        )
 
-        self.df3['mag_acc'] = FeatureExtraction.calculate_magnitude(self.df3['acc_x'], self.df3['acc_y'], self.df3['acc_z'])
-        self.df3['mag_gyro'] = FeatureExtraction.calculate_magnitude(self.df3['gyro_x'], self.df3['gyro_y'], self.df3['gyro_z'])
-        merged_data = preproc.run(self.df1, self.df2, self.df3, remove_nan=True, convert_nan="mean", interpolate_method="linear", filter_data="low-pass", normalization="minmax")
+        self.df3["mag_acc"] = FeatureExtraction.calculate_magnitude(
+            self.df3["acc_x"], self.df3["acc_y"], self.df3["acc_z"]
+        )
+        self.df3["mag_gyro"] = FeatureExtraction.calculate_magnitude(
+            self.df3["gyro_x"], self.df3["gyro_y"], self.df3["gyro_z"]
+        )
+        merged_data = preproc.run(
+            self.df1,
+            self.df2,
+            self.df3,
+            remove_nan=True,
+            convert_nan="mean",
+            interpolate_method="linear",
+            filter_data="low-pass",
+            normalization="minmax",
+        )
 
         print(merged_data)
         corr = Correlation(name=name)
@@ -228,14 +373,14 @@ class Routine():
         corr.cross_correlation_exploratory(merged_data, criterion=0.5, best=True)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     routine = Routine()
     routine.run_experiment01()
     routine.run_experiment02()
-    routine.run_experiment03()
-    routine.run_experiment04()
-    routine.run_experiment05()
-    routine.run_experiment06()
-    routine.run_experiment07()
-    routine.run_experiment08()
-    routine.run_experiment09()
+    # routine.run_experiment03()
+    # routine.run_experiment04()
+    # routine.run_experiment05()
+    # routine.run_experiment06()
+    # routine.run_experiment07()
+    # routine.run_experiment08()
+    # routine.run_experiment09()

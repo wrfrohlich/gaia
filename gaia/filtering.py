@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.signal import butter, filtfilt
 
+
 class Filtering:
     """
     A class for applying Butterworth filters to data.
@@ -16,6 +17,7 @@ class Filtering:
     butter_bandpass_filter(data, lowcut=0.5, highcut=3.0, fs=100, order=5)
         Applies a Butterworth band-pass filter to the given data.
     """
+
     @staticmethod
     def butter_filter(data, type="low-pass"):
         """
@@ -39,7 +41,7 @@ class Filtering:
             if type == "band-pass":
                 data[col] = Filtering.butter_bandpass_filter(data[col].values)
         return data
-    
+
     @staticmethod
     def butter_lowpass_filter(data, cutoff=3.0, fs=100, order=5):
         """
@@ -67,14 +69,16 @@ class Filtering:
             If cutoff frequency or sampling frequency is non-positive or if normalized cutoff frequency is out of range.
         """
         if cutoff <= 0 or fs <= 0:
-            raise ValueError("Cutoff frequency and sampling frequency must be greater than zero.")
+            raise ValueError(
+                "Cutoff frequency and sampling frequency must be greater than zero."
+            )
 
         nyquist = 0.5 * fs
         normal_cutoff = cutoff / nyquist
         if normal_cutoff <= 0 or normal_cutoff >= 1:
             raise ValueError("Normalized cutoff frequency must be between 0 and 1.")
 
-        b, a = butter(order, normal_cutoff, btype='low', analog=False)
+        b, a = butter(order, normal_cutoff, btype="low", analog=False)
         y = filtfilt(b, a, data)
         return y
 
@@ -105,14 +109,16 @@ class Filtering:
             If cutoff frequency or sampling frequency is non-positive or if normalized cutoff frequency is out of range.
         """
         if cutoff <= 0 or fs <= 0:
-            raise ValueError("Cutoff frequency and sampling frequency must be greater than zero.")
+            raise ValueError(
+                "Cutoff frequency and sampling frequency must be greater than zero."
+            )
 
         nyquist = 0.5 * fs
         normal_cutoff = cutoff / nyquist
         if normal_cutoff <= 0 or normal_cutoff >= 1:
             raise ValueError("Normalized cutoff frequency must be between 0 and 1.")
 
-        b, a = butter(order, normal_cutoff, btype='high', analog=False)
+        b, a = butter(order, normal_cutoff, btype="high", analog=False)
         y = filtfilt(b, a, data)
         return y
 
@@ -145,14 +151,16 @@ class Filtering:
             If cutoff frequencies or sampling frequency are non-positive or if normalized cutoff frequencies are out of range.
         """
         if lowcut <= 0 or highcut <= 0 or fs <= 0:
-            raise ValueError("Cutoff frequencies and sampling frequency must be greater than zero.")
-        
+            raise ValueError(
+                "Cutoff frequencies and sampling frequency must be greater than zero."
+            )
+
         nyquist = 0.5 * fs
         low = lowcut / nyquist
         high = highcut / nyquist
         if low <= 0 or high <= 0 or low >= 1 or high >= 1:
             raise ValueError("Normalized cutoff frequencies must be between 0 and 1.")
 
-        b, a = butter(order, [low, high], btype='band', analog=False)
+        b, a = butter(order, [low, high], btype="band", analog=False)
         y = filtfilt(b, a, data)
         return y
