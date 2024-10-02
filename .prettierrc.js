@@ -1,6 +1,31 @@
 module.exports = {
+  // General
+  semi: true,
+  singleQuote: true,
   printWidth: 88,
-  bracketSpacing: false,
+  useTabs: false,
   trailingComma: "es5",
-  "vue-indent-script-and-style": true,
+  bracketSpacing: true,
+
+  // HTML, CSS e SCSS
+  htmlWhitespaceSensitivity: 'css',
+  cssEnable: true,
+  scssEnable: true,
+
+  // Markdown
+  proseWrap: 'always',
+
+  // YAML
+  tabWidth: 2,
+
+  // JSON
+  overrides: [
+    {
+      files: "*.json",
+      options: {
+        tabWidth: 2,
+        singleQuote: false,
+      },
+    },
+  ],
 };
