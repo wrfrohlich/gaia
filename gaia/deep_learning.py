@@ -1,14 +1,21 @@
 import logging
 import pandas as pd
+import seaborn as sns
 import matplotlib.pyplot as plt
 
 from os import path, makedirs
+from typing import Literal
 from sklearn.model_selection import train_test_split
-
-import tensorflow as tf
+from sklearn.metrics import (
+    mean_squared_error,
+    r2_score,
+    mean_absolute_error,
+    mean_absolute_percentage_error,
+)
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
-
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.callbacks import EarlyStopping
 from gaia.config import Config
 
 
@@ -20,7 +27,6 @@ class DeepLearning:
         )
         self.points = config.body_parts
 
-        # Create experiment directory if it doesn't exist
         if not path.exists(self.path_experiment):
             makedirs(self.path_experiment)
 
@@ -55,37 +61,62 @@ class DeepLearning:
         )
         return x_train, x_test, y_train, y_test
 
+    def build_model(self, input_shape):
+        model = Sequential()
+        model.add(Dense(64, activation="relu", input_shape=(input_shape,)))
+        model.add(Dense(32, activation="relu"))
+        model.add(Dense(16, activation="relu"))
+        model.add(Dense(1))
+        model.compile(optimizer=Adam(learning_rate=0.001), loss="mse", metrics=["mae"])
+        return model
+
     def run(self, sep_data, data):
         for item in sep_data:
             x_train, x_test, y_train, y_test = self.prep_data(item, sep_data, data)
+            model = self.build_model(input_shape=x_train.shape[1])
 
-    def run(self, sep_data, data, method="linear_regression"):
-        for item in sep_data:
-            x_train, x_test, y_train, y_test = self.prep_data(item, sep_data, data)
-            model = Sequential()
-
-            model.add(Dense(64, input_dim=x_train.shape[1], activation="relu"))
-            model.add(Dense(32, activation="relu"))
-            model.add(
-                Dense(3)
-            )  # Saída com 3 neurônios (correspondente a 'c7_x', 'c7_y', 'c7_z')
-
-            model.compile(optimizer="adam", loss="mse", metrics=["mae"])
+            early_stop = EarlyStopping(
+                monitor="val_loss", patience=10, restore_best_weights=True
+            )
 
             history = model.fit(
                 x_train,
                 y_train,
-                validation_data=(x_train, y_test),
-                epochs=50,
+                validation_data=(x_test, y_test),
+                epochs=100,
                 batch_size=32,
+                callbacks=[early_stop],
+                verbose=0,
             )
 
-            loss, mae = model.evaluate(x_train, y_test)
-            print(f"MAE: {mae}")
+            y_pred = model.predict(x_test)
 
-            plt.plot(history.history["loss"], label="Train Loss")
-            plt.plot(history.history["val_loss"], label="Validation Loss")
-            plt.xlabel("Epoch")
-            plt.ylabel("Loss")
-            plt.legend()
-            plt.show()
+            mse = mean_squared_error(y_test, y_pred)
+            r2 = r2_score(y_test, y_pred)
+            mae = mean_absolute_error(y_test, y_pred)
+            mape = mean_absolute_percentage_error(y_test, y_pred)
+
+            report = pd.DataFrame(
+                {"MSE": [mse], "R2": [r2], "MAE": [mae], "MAPE": [mape]}
+            )
+            report.insert(0, "item", item)
+            report.to_csv(
+                f"{self.path_experiment}/report_deep_learning.csv",
+                mode="a",
+                header=not path.exists(
+                    f"{self.path_experiment}/report_deep_learning.csv"
+                ),
+                index=False,
+            )
+
+    def plot_training_history(self, history, item):
+        plt.figure(figsize=(10, 8))
+        plt.plot(history.history["loss"], label="Loss")
+        plt.plot(history.history["val_loss"], label="Validation Loss")
+        plt.xlabel("Epochs", fontsize=15)
+        plt.ylabel("Loss", fontsize=15)
+        plt.title(f"Training History for {item}", fontsize=15)
+        plt.legend()
+        plt.savefig(f"{self.path_experiment}/training_history_{item}.png")
+        plt.clf()
+        plt.close()
